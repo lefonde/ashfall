@@ -1,0 +1,4 @@
+// effects.js — bundled from the owner’s liminal baseline.
+function updateEffects(dt){for(let i=particles.length-1;i>=0;i--){const q=particles[i];q.life-=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.z+=q.vz*dt;q.vz-=7*dt;if(q.z<.02){q.z=.02;q.vz=Math.abs(q.vz)*.24;q.vx*=.65;q.vy*=.65;}if(q.life<=0)particles.splice(i,1);}for(const arr of[rings,tracers,numbers])for(let i=arr.length-1;i>=0;i--){arr[i].life-=dt;if(arr===numbers)arr[i].z+=dt*.4;if(arr[i].life<=0)arr.splice(i,1);}for(let i=drops.length-1;i>=0;i--){const q=drops[i];if(Math.hypot(q.x-player.x,q.y-player.y)<.6){if(q.type==='life'){player.hp=Math.min(100,player.hp+35);feed('SIGNAL +35');}else{for(const g of guns)g.reserve=Math.min(g.maxReserve,g.reserve+g.mag*2);feed('ALL AMMUNITION REPLENISHED');}audio.pickup();drops.splice(i,1);if(s4qRunning())s4qSave();}}}
+
+

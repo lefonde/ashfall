@@ -1,0 +1,1010 @@
+{
+  "BUILD": {
+    "id": "BETA-0.2.0",
+    "version": "0.2.0",
+    "channel": "friends-beta",
+    "title": "Friends Beta",
+    "release_date": "2026-09-12",
+    "parent": "ashfall-beta-0.1.8-warden-motion.html",
+    "parent_sha256": "451287a1d9af92a15717fb144718700e3bc1febb6c809a6dfb63010ec1272db9",
+    "status": "Ready for beta feedback",
+    "source_digest": "b34d6291523d",
+    "distribution": "github-pages",
+    "standalone_sha256": "c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b"
+  },
+  "ASSETS": {
+    "monsters": "assets/images/monsters-7a8d8ffd4fae.png",
+    "weapons": "assets/images/weapons-73583938e547.png",
+    "environment": "assets/images/environment-3322ada17e47.png",
+    "corruption": "assets/images/corruption-e84fc5cb4a50.png",
+    "heart": "assets/images/heart-5692eece590a.png",
+    "heartDead": "assets/images/heartDead-7f529971b65b.png",
+    "exteriorSky": "assets/images/exteriorSky-6693e4a4d332.webp",
+    "exteriorMaterials": "assets/images/exteriorMaterials-e843987123e0.webp",
+    "exteriorFacade": "assets/images/exteriorFacade-3a67568a2001.webp",
+    "groundsTextures": "assets/images/groundsTextures-f1efbe29ae5c.webp",
+    "groundsSprites": "assets/images/groundsSprites-bd069fa07efd.webp",
+    "distantCity": "assets/images/distantCity-89b2d4b4bada.webp",
+    "ambulance": "assets/images/ambulance-47ad2f81dfb6.webp",
+    "recovery": "assets/images/recovery-c727d44ad39a.webp",
+    "seraphim": "assets/images/seraphim-f9d62263f225.webp",
+    "cerberusBody": "assets/images/cerberusBody-09c649a96f23.webp",
+    "cerberusHeads": "assets/images/cerberusHeads-acebff74aa17.webp",
+    "parking": "assets/images/parking-07caf158b197.webp"
+  },
+  "AUDIO_DATA": {
+    "fx": "assets/audio/fx-7b8598627e4a.mp3",
+    "music": "assets/audio/music-49c4af6ac5c0.mp3"
+  },
+  "NIGHT_AUDIO_DATA": {
+    "insects": "assets/audio/night-insects-e61571f673e6.mp3",
+    "owl": "assets/audio/night-owl-e261b3affa75.mp3"
+  },
+  "AUDIO_CUES": {
+    "shotgun0": {
+      "start": 0.15,
+      "duration": 0.747938
+    },
+    "shotgun1": {
+      "start": 1.017937,
+      "duration": 0.747938
+    },
+    "shotgun2": {
+      "start": 1.885875,
+      "duration": 0.747938
+    },
+    "plasma0": {
+      "start": 2.753812,
+      "duration": 0.284
+    },
+    "plasma1": {
+      "start": 3.157812,
+      "duration": 0.284
+    },
+    "plasma2": {
+      "start": 3.561812,
+      "duration": 0.284
+    },
+    "cannon0": {
+      "start": 3.965813,
+      "duration": 2.244
+    },
+    "blast0": {
+      "start": 6.329813,
+      "duration": 0.960375
+    },
+    "cannon1": {
+      "start": 7.410188,
+      "duration": 2.244
+    },
+    "blast1": {
+      "start": 9.774188,
+      "duration": 0.960375
+    },
+    "rack": {
+      "start": 10.854563,
+      "duration": 0.654
+    },
+    "reload": {
+      "start": 11.628562,
+      "duration": 0.654
+    },
+    "dry": {
+      "start": 12.402563,
+      "duration": 0.152906
+    },
+    "shell": {
+      "start": 12.675469,
+      "duration": 0.3585
+    },
+    "patient0": {
+      "start": 13.153969,
+      "duration": 2.854
+    },
+    "crawler0": {
+      "start": 16.127969,
+      "duration": 2.654
+    },
+    "brute0": {
+      "start": 18.901969,
+      "duration": 3.454
+    },
+    "death0": {
+      "start": 22.475969,
+      "duration": 2.141906
+    },
+    "patient1": {
+      "start": 24.737875,
+      "duration": 1.209219
+    },
+    "crawler1": {
+      "start": 26.067094,
+      "duration": 2.654
+    },
+    "brute1": {
+      "start": 28.841094,
+      "duration": 3.454
+    },
+    "death1": {
+      "start": 32.415094,
+      "duration": 1.273125
+    },
+    "patient2": {
+      "start": 33.808219,
+      "duration": 2.854
+    },
+    "crawler2": {
+      "start": 36.782219,
+      "duration": 2.654
+    },
+    "brute2": {
+      "start": 39.556219,
+      "duration": 3.454
+    },
+    "death2": {
+      "start": 43.130219,
+      "duration": 1.328938
+    },
+    "scream0": {
+      "start": 44.579156,
+      "duration": 3.079
+    },
+    "shriek0": {
+      "start": 47.778156,
+      "duration": 1.32325
+    },
+    "roar0": {
+      "start": 49.221406,
+      "duration": 3.054
+    },
+    "scream1": {
+      "start": 52.395406,
+      "duration": 1.874406
+    },
+    "shriek1": {
+      "start": 54.389812,
+      "duration": 0.813594
+    },
+    "roar1": {
+      "start": 55.323406,
+      "duration": 3.054
+    },
+    "pain0": {
+      "start": 58.497406,
+      "duration": 1.755031
+    },
+    "pain1": {
+      "start": 60.372437,
+      "duration": 1.755031
+    },
+    "pain2": {
+      "start": 62.247469,
+      "duration": 1.072031
+    },
+    "pain3": {
+      "start": 63.4395,
+      "duration": 1.118656
+    },
+    "agony": {
+      "start": 64.678156,
+      "duration": 1.231719
+    },
+    "gasp": {
+      "start": 66.029875,
+      "duration": 1.254
+    },
+    "effort": {
+      "start": 67.403875,
+      "duration": 0.58825
+    },
+    "breath0": {
+      "start": 68.112125,
+      "duration": 1.632969
+    },
+    "breath1": {
+      "start": 69.865094,
+      "duration": 1.80775
+    },
+    "breath2": {
+      "start": 71.792844,
+      "duration": 1.131156
+    },
+    "flesh0": {
+      "start": 73.044,
+      "duration": 0.610344
+    },
+    "gore0": {
+      "start": 73.774344,
+      "duration": 0.5965
+    },
+    "bodyhit0": {
+      "start": 74.490844,
+      "duration": 0.465
+    },
+    "flesh1": {
+      "start": 75.075844,
+      "duration": 0.329781
+    },
+    "gore1": {
+      "start": 75.525625,
+      "duration": 0.407594
+    },
+    "bodyhit1": {
+      "start": 76.053219,
+      "duration": 0.386281
+    },
+    "flesh2": {
+      "start": 76.5595,
+      "duration": 0.43025
+    },
+    "gore2": {
+      "start": 77.10975,
+      "duration": 0.494406
+    },
+    "bodyhit2": {
+      "start": 77.724156,
+      "duration": 0.467875
+    },
+    "step0": {
+      "start": 78.312031,
+      "duration": 0.294
+    },
+    "step1": {
+      "start": 78.726031,
+      "duration": 0.294
+    },
+    "step2": {
+      "start": 79.140031,
+      "duration": 0.294
+    },
+    "step3": {
+      "start": 79.554031,
+      "duration": 0.294
+    },
+    "heartbeat": {
+      "start": 79.968031,
+      "duration": 0.404
+    },
+    "swing": {
+      "start": 80.492031,
+      "duration": 0.334
+    },
+    "dash": {
+      "start": 80.946031,
+      "duration": 0.294
+    },
+    "pickup": {
+      "start": 81.360031,
+      "duration": 0.604
+    },
+    "seal": {
+      "start": 82.084031,
+      "duration": 1.138313
+    },
+    "bodyfall": {
+      "start": 83.342344,
+      "duration": 0.559
+    },
+    "environment0": {
+      "start": 84.021344,
+      "duration": 1.042344
+    },
+    "environment1": {
+      "start": 85.183688,
+      "duration": 2.554
+    },
+    "environment2": {
+      "start": 87.857687,
+      "duration": 2.554
+    },
+    "environment3": {
+      "start": 90.531688,
+      "duration": 0.338687
+    },
+    "roomtone": {
+      "start": 90.990375,
+      "duration": 10.0
+    },
+    "machinery": {
+      "start": 101.110375,
+      "duration": 8.0
+    }
+  },
+  "CERBERUS_AUDIO_DATA": "assets/audio/cerberus-score-bd028e8baa2c.mp3",
+  "HEART_AUDIO_DATA": "assets/audio/heart-finale-6779025fc027.mp3",
+  "HEART_AUDIO_CUES": {
+    "phase1": {
+      "start": 0.15,
+      "duration": 25.26315192743764,
+      "heart_bpm": 76,
+      "beats": 32
+    },
+    "phase2": {
+      "start": 25.593152,
+      "duration": 20.86956916099773,
+      "heart_bpm": 92,
+      "beats": 32
+    },
+    "phase3": {
+      "start": 46.642721,
+      "duration": 17.45453514739229,
+      "heart_bpm": 110,
+      "beats": 32
+    },
+    "death": {
+      "start": 64.277256,
+      "duration": 6.5,
+      "rupture": 0.72
+    }
+  },
+  "CREATURE_AUDIO_DATA": "assets/audio/creature-voices-0244fee2a287.mp3",
+  "CREATURE_AUDIO_CUES": {
+    "mv_unstitched_idle0": {
+      "start": 0.15,
+      "duration": 1.23421875
+    },
+    "mv_unstitched_idle1": {
+      "start": 1.50421875,
+      "duration": 1.25375
+    },
+    "mv_unstitched_idle2": {
+      "start": 2.87796875,
+      "duration": 1.06440625
+    },
+    "mv_unstitched_idle3": {
+      "start": 4.062375,
+      "duration": 1.083875
+    },
+    "mv_unstitched_attack0": {
+      "start": 5.26625,
+      "duration": 0.6074375
+    },
+    "mv_unstitched_attack1": {
+      "start": 5.9936875,
+      "duration": 0.58290625
+    },
+    "mv_unstitched_attack2": {
+      "start": 6.69659375,
+      "duration": 0.6733125
+    },
+    "mv_unstitched_attack3": {
+      "start": 7.48990625,
+      "duration": 0.5605
+    },
+    "mv_unstitched_attack4": {
+      "start": 8.17040625,
+      "duration": 0.58646875
+    },
+    "mv_unstitched_death0": {
+      "start": 8.876875,
+      "duration": 1.0305
+    },
+    "mv_unstitched_death1": {
+      "start": 10.027375,
+      "duration": 0.88040625
+    },
+    "mv_unstitched_death2": {
+      "start": 11.02778125,
+      "duration": 1.125375
+    },
+    "mv_runner_idle0": {
+      "start": 12.27315625,
+      "duration": 0.65446875
+    },
+    "mv_runner_idle1": {
+      "start": 13.047625,
+      "duration": 0.74946875
+    },
+    "mv_runner_idle2": {
+      "start": 13.91709375,
+      "duration": 0.755
+    },
+    "mv_runner_idle3": {
+      "start": 14.79209375,
+      "duration": 0.64528125
+    },
+    "mv_runner_attack0": {
+      "start": 15.557375,
+      "duration": 0.35484375
+    },
+    "mv_runner_attack1": {
+      "start": 16.03221875,
+      "duration": 0.40803125
+    },
+    "mv_runner_attack2": {
+      "start": 16.56025,
+      "duration": 0.3441875
+    },
+    "mv_runner_attack3": {
+      "start": 17.0244375,
+      "duration": 0.36484375
+    },
+    "mv_runner_attack4": {
+      "start": 17.50928125,
+      "duration": 0.41021875
+    },
+    "mv_runner_death0": {
+      "start": 18.0395,
+      "duration": 0.67465625
+    },
+    "mv_runner_death1": {
+      "start": 18.83415625,
+      "duration": 0.7071875
+    },
+    "mv_runner_death2": {
+      "start": 19.66134375,
+      "duration": 0.73546875
+    },
+    "mv_orderly_idle0": {
+      "start": 20.5168125,
+      "duration": 1.52121875
+    },
+    "mv_orderly_idle1": {
+      "start": 22.15803125,
+      "duration": 1.64075
+    },
+    "mv_orderly_idle2": {
+      "start": 23.91878125,
+      "duration": 1.70209375
+    },
+    "mv_orderly_idle3": {
+      "start": 25.740875,
+      "duration": 1.49378125
+    },
+    "mv_orderly_attack0": {
+      "start": 27.35465625,
+      "duration": 0.75253125
+    },
+    "mv_orderly_attack1": {
+      "start": 28.2271875,
+      "duration": 0.8978125
+    },
+    "mv_orderly_attack2": {
+      "start": 29.245,
+      "duration": 0.825
+    },
+    "mv_orderly_attack3": {
+      "start": 30.19,
+      "duration": 0.83734375
+    },
+    "mv_orderly_attack4": {
+      "start": 31.14734375,
+      "duration": 0.864
+    },
+    "mv_orderly_death0": {
+      "start": 32.13134375,
+      "duration": 1.32115625
+    },
+    "mv_orderly_death1": {
+      "start": 33.5725,
+      "duration": 1.416625
+    },
+    "mv_orderly_death2": {
+      "start": 35.109125,
+      "duration": 1.29525
+    },
+    "mv_shepherd_idle0": {
+      "start": 36.524375,
+      "duration": 1.01190625
+    },
+    "mv_shepherd_idle1": {
+      "start": 37.65628125,
+      "duration": 1.26071875
+    },
+    "mv_shepherd_idle2": {
+      "start": 39.037,
+      "duration": 1.056375
+    },
+    "mv_shepherd_idle3": {
+      "start": 40.213375,
+      "duration": 1.2461875
+    },
+    "mv_shepherd_attack0": {
+      "start": 41.5795625,
+      "duration": 0.471375
+    },
+    "mv_shepherd_attack1": {
+      "start": 42.1709375,
+      "duration": 0.52609375
+    },
+    "mv_shepherd_attack2": {
+      "start": 42.81703125,
+      "duration": 0.4778125
+    },
+    "mv_shepherd_attack3": {
+      "start": 43.41484375,
+      "duration": 0.49640625
+    },
+    "mv_shepherd_attack4": {
+      "start": 44.03125,
+      "duration": 0.5335
+    },
+    "mv_shepherd_death0": {
+      "start": 44.68475,
+      "duration": 1.154125
+    },
+    "mv_shepherd_death1": {
+      "start": 45.958875,
+      "duration": 0.9709375
+    },
+    "mv_shepherd_death2": {
+      "start": 47.0498125,
+      "duration": 0.971875
+    },
+    "mv_bulldog_idle0": {
+      "start": 48.1416875,
+      "duration": 1.2851875
+    },
+    "mv_bulldog_idle1": {
+      "start": 49.546875,
+      "duration": 1.587875
+    },
+    "mv_bulldog_idle2": {
+      "start": 51.25475,
+      "duration": 1.26184375
+    },
+    "mv_bulldog_idle3": {
+      "start": 52.63659375,
+      "duration": 1.5223125
+    },
+    "mv_bulldog_attack0": {
+      "start": 54.27890625,
+      "duration": 0.95309375
+    },
+    "mv_bulldog_attack1": {
+      "start": 55.352,
+      "duration": 0.9591875
+    },
+    "mv_bulldog_attack2": {
+      "start": 56.4311875,
+      "duration": 1.07334375
+    },
+    "mv_bulldog_attack3": {
+      "start": 57.62453125,
+      "duration": 0.8551875
+    },
+    "mv_bulldog_attack4": {
+      "start": 58.59971875,
+      "duration": 0.9894375
+    },
+    "mv_bulldog_death0": {
+      "start": 59.70915625,
+      "duration": 1.4330625
+    },
+    "mv_bulldog_death1": {
+      "start": 61.26221875,
+      "duration": 1.461375
+    },
+    "mv_bulldog_death2": {
+      "start": 62.84359375,
+      "duration": 1.15821875
+    },
+    "mv_chihuahua_idle0": {
+      "start": 64.1218125,
+      "duration": 0.54746875
+    },
+    "mv_chihuahua_idle1": {
+      "start": 64.78928125,
+      "duration": 0.46065625
+    },
+    "mv_chihuahua_idle2": {
+      "start": 65.3699375,
+      "duration": 0.51246875
+    },
+    "mv_chihuahua_idle3": {
+      "start": 66.00240625,
+      "duration": 0.51228125
+    },
+    "mv_chihuahua_attack0": {
+      "start": 66.6346875,
+      "duration": 0.20421875
+    },
+    "mv_chihuahua_attack1": {
+      "start": 66.95890625,
+      "duration": 0.20709375
+    },
+    "mv_chihuahua_attack2": {
+      "start": 67.286,
+      "duration": 0.228625
+    },
+    "mv_chihuahua_attack3": {
+      "start": 67.634625,
+      "duration": 0.2498125
+    },
+    "mv_chihuahua_attack4": {
+      "start": 68.0044375,
+      "duration": 0.21659375
+    },
+    "mv_chihuahua_death0": {
+      "start": 68.34103125,
+      "duration": 0.484375
+    },
+    "mv_chihuahua_death1": {
+      "start": 68.94540625,
+      "duration": 0.43015625
+    },
+    "mv_chihuahua_death2": {
+      "start": 69.4955625,
+      "duration": 0.46253125
+    },
+    "mv_heart_idle0": {
+      "start": 70.07809375,
+      "duration": 2.0604375
+    },
+    "mv_heart_idle1": {
+      "start": 72.25853125,
+      "duration": 1.69409375
+    },
+    "mv_heart_idle2": {
+      "start": 74.072625,
+      "duration": 1.605
+    },
+    "mv_heart_idle3": {
+      "start": 75.797625,
+      "duration": 1.6895
+    },
+    "mv_heart_attack0": {
+      "start": 77.607125,
+      "duration": 2.56034375
+    },
+    "mv_heart_attack1": {
+      "start": 80.28746875,
+      "duration": 2.53234375
+    },
+    "mv_heart_attack2": {
+      "start": 82.9398125,
+      "duration": 2.17640625
+    },
+    "mv_heart_attack3": {
+      "start": 85.23621875,
+      "duration": 1.99721875
+    },
+    "mv_heart_attack4": {
+      "start": 87.3534375,
+      "duration": 2.19328125
+    },
+    "mv_heart_death0": {
+      "start": 89.66671875,
+      "duration": 2.799375
+    },
+    "mv_heart_death1": {
+      "start": 92.58609375,
+      "duration": 2.4289375
+    },
+    "mv_heart_death2": {
+      "start": 95.13503125,
+      "duration": 2.447
+    }
+  },
+  "CREATURE_AUDITION_DATA": "assets/audio/creature-auditions-a190f10c4f0b.mp3",
+  "CREATURE_AUDITION_CUES": {
+    "ca_orderly_a_attack0": {
+      "start": 0.15,
+      "duration": 2.8988125
+    },
+    "ca_orderly_a_attack1": {
+      "start": 3.2988125,
+      "duration": 2.2296666666666667
+    },
+    "ca_orderly_a_idle0": {
+      "start": 5.778479166666667,
+      "duration": 1.3027916666666666
+    },
+    "ca_orderly_a_idle1": {
+      "start": 7.331270833333333,
+      "duration": 0.9091041666666667
+    },
+    "ca_orderly_b_attack0": {
+      "start": 8.490375,
+      "duration": 3.034104166666667
+    },
+    "ca_orderly_b_attack1": {
+      "start": 11.774479166666667,
+      "duration": 2.644
+    },
+    "ca_orderly_b_idle0": {
+      "start": 14.668479166666666,
+      "duration": 1.8478958333333333
+    },
+    "ca_orderly_b_idle1": {
+      "start": 16.766375,
+      "duration": 1.8661875
+    },
+    "ca_runner_a_attack0": {
+      "start": 18.8825625,
+      "duration": 1.5039583333333333
+    },
+    "ca_runner_a_attack1": {
+      "start": 20.636520833333332,
+      "duration": 1.543375
+    },
+    "ca_runner_a_idle0": {
+      "start": 22.429895833333333,
+      "duration": 1.375
+    },
+    "ca_runner_a_idle1": {
+      "start": 24.054895833333333,
+      "duration": 1.3897083333333333
+    },
+    "ca_runner_b_attack0": {
+      "start": 25.694604166666668,
+      "duration": 1.3583333333333334
+    },
+    "ca_runner_b_attack1": {
+      "start": 27.3029375,
+      "duration": 1.2510208333333332
+    },
+    "ca_runner_b_idle0": {
+      "start": 28.803958333333334,
+      "duration": 1.565875
+    },
+    "ca_runner_b_idle1": {
+      "start": 30.619833333333332,
+      "duration": 1.0618541666666668
+    },
+    "ca_orderly_previous_idle0": {
+      "start": 31.9316875,
+      "duration": 1.6212291666666667
+    },
+    "ca_orderly_previous_idle1": {
+      "start": 33.80291666666667,
+      "duration": 1.74075
+    },
+    "ca_orderly_previous_attack0": {
+      "start": 35.79366666666667,
+      "duration": 0.8525208333333333
+    },
+    "ca_orderly_previous_attack1": {
+      "start": 36.8961875,
+      "duration": 0.9978125
+    },
+    "ca_runner_previous_idle0": {
+      "start": 38.144,
+      "duration": 0.7544583333333333
+    },
+    "ca_runner_previous_idle1": {
+      "start": 39.14845833333333,
+      "duration": 0.8494583333333333
+    },
+    "ca_runner_previous_attack0": {
+      "start": 40.24791666666667,
+      "duration": 0.4548333333333333
+    },
+    "ca_runner_previous_attack1": {
+      "start": 40.95275,
+      "duration": 0.5080416666666666
+    }
+  },
+  "CREATURE_REVIEW_MODE": false,
+  "CREATURE_ROUND2_DATA": "assets/audio/creature-round2-569de06a3c95.mp3",
+  "CREATURE_ROUND2_CUES": {
+    "cr_unstitched_a_attack0": {
+      "start": 0.15,
+      "duration": 1.8173125
+    },
+    "cr_unstitched_a_attack1": {
+      "start": 2.2473125,
+      "duration": 1.9363333333333332
+    },
+    "cr_unstitched_a_idle0": {
+      "start": 4.4636458333333335,
+      "duration": 1.1821458333333332
+    },
+    "cr_unstitched_a_idle1": {
+      "start": 5.925791666666667,
+      "duration": 1.2720625
+    },
+    "cr_unstitched_b_attack0": {
+      "start": 7.477854166666667,
+      "duration": 2.1352083333333334
+    },
+    "cr_unstitched_b_attack1": {
+      "start": 9.8930625,
+      "duration": 2.0745
+    },
+    "cr_unstitched_b_idle0": {
+      "start": 12.2475625,
+      "duration": 1.0577083333333333
+    },
+    "cr_unstitched_b_idle1": {
+      "start": 13.585270833333333,
+      "duration": 1.2430416666666666
+    },
+    "cr_shepherd_a_attack0": {
+      "start": 15.1083125,
+      "duration": 2.3876458333333335
+    },
+    "cr_shepherd_a_attack1": {
+      "start": 17.77595833333333,
+      "duration": 2.0953125
+    },
+    "cr_shepherd_a_idle0": {
+      "start": 20.151270833333335,
+      "duration": 1.555
+    },
+    "cr_shepherd_a_idle1": {
+      "start": 21.986270833333332,
+      "duration": 1.6199583333333334
+    },
+    "cr_shepherd_b_attack0": {
+      "start": 23.886229166666666,
+      "duration": 1.63075
+    },
+    "cr_shepherd_b_attack1": {
+      "start": 25.796979166666667,
+      "duration": 1.6868125
+    },
+    "cr_shepherd_b_idle0": {
+      "start": 27.763791666666666,
+      "duration": 1.4986458333333332
+    },
+    "cr_shepherd_b_idle1": {
+      "start": 29.5424375,
+      "duration": 1.5121041666666666
+    },
+    "cr_bulldog_a_attack0": {
+      "start": 31.334541666666667,
+      "duration": 2.2989166666666665
+    },
+    "cr_bulldog_a_attack1": {
+      "start": 33.91345833333333,
+      "duration": 2.1782083333333335
+    },
+    "cr_bulldog_a_idle0": {
+      "start": 36.37166666666667,
+      "duration": 1.5841875
+    },
+    "cr_bulldog_a_idle1": {
+      "start": 38.23585416666667,
+      "duration": 1.435
+    },
+    "cr_bulldog_b_attack0": {
+      "start": 39.950854166666666,
+      "duration": 2.2936875
+    },
+    "cr_bulldog_b_attack1": {
+      "start": 42.524541666666664,
+      "duration": 1.6897083333333334
+    },
+    "cr_bulldog_b_idle0": {
+      "start": 44.49425,
+      "duration": 1.0568333333333333
+    },
+    "cr_bulldog_b_idle1": {
+      "start": 45.83108333333333,
+      "duration": 0.9583333333333334
+    },
+    "cr_chihuahua_a_attack0": {
+      "start": 47.06941666666667,
+      "duration": 0.845
+    },
+    "cr_chihuahua_a_attack1": {
+      "start": 48.19441666666667,
+      "duration": 1.0543125
+    },
+    "cr_chihuahua_a_idle0": {
+      "start": 49.528729166666665,
+      "duration": 0.645
+    },
+    "cr_chihuahua_a_idle1": {
+      "start": 50.45372916666667,
+      "duration": 0.9765
+    },
+    "cr_chihuahua_b_attack0": {
+      "start": 51.710229166666664,
+      "duration": 1.2727291666666667
+    },
+    "cr_chihuahua_b_attack1": {
+      "start": 53.26295833333333,
+      "duration": 1.0138958333333334
+    },
+    "cr_chihuahua_b_idle0": {
+      "start": 54.55685416666667,
+      "duration": 0.8992083333333334
+    },
+    "cr_chihuahua_b_idle1": {
+      "start": 55.7360625,
+      "duration": 0.6828958333333334
+    },
+    "cr_heart_a_attack0": {
+      "start": 56.69895833333333,
+      "duration": 2.559229166666667
+    },
+    "cr_heart_a_attack1": {
+      "start": 59.5381875,
+      "duration": 2.535270833333333
+    },
+    "cr_heart_a_idle0": {
+      "start": 62.353458333333336,
+      "duration": 1.4503125
+    },
+    "cr_heart_a_idle1": {
+      "start": 64.08377083333333,
+      "duration": 1.5416666666666667
+    },
+    "cr_heart_b_attack0": {
+      "start": 65.9054375,
+      "duration": 2.7660416666666667
+    },
+    "cr_heart_b_attack1": {
+      "start": 68.95147916666667,
+      "duration": 2.3875
+    },
+    "cr_heart_b_idle0": {
+      "start": 71.61897916666666,
+      "duration": 1.3869166666666666
+    },
+    "cr_heart_b_idle1": {
+      "start": 73.28589583333333,
+      "duration": 1.2839166666666666
+    }
+  },
+  "CREATURE_ROUND3_DATA": "assets/audio/creature-round3-abb03751c8c4.mp3",
+  "CREATURE_ROUND3_CUES": {
+    "cr3_unstitched_a_idle0": {
+      "start": 0.15,
+      "duration": 1.3803333333333334
+    },
+    "cr3_unstitched_a_idle1": {
+      "start": 1.8103333333333333,
+      "duration": 1.4583333333333333
+    },
+    "cr3_unstitched_a_attack0": {
+      "start": 3.5486666666666666,
+      "duration": 1.8165
+    },
+    "cr3_unstitched_a_attack1": {
+      "start": 5.645166666666666,
+      "duration": 1.8363541666666667
+    },
+    "cr3_unstitched_b_idle0": {
+      "start": 7.761520833333333,
+      "duration": 1.3105833333333334
+    },
+    "cr3_unstitched_b_idle1": {
+      "start": 9.352104166666667,
+      "duration": 1.44825
+    },
+    "cr3_unstitched_b_attack0": {
+      "start": 11.080354166666666,
+      "duration": 1.7386458333333332
+    },
+    "cr3_unstitched_b_attack1": {
+      "start": 13.099,
+      "duration": 1.836125
+    },
+    "cr3_heart_a_idle0": {
+      "start": 15.215125,
+      "duration": 1.8625
+    },
+    "cr3_heart_a_idle1": {
+      "start": 17.357625,
+      "duration": 1.9542708333333334
+    },
+    "cr3_heart_a_attack0": {
+      "start": 19.591895833333332,
+      "duration": 2.512958333333333
+    },
+    "cr3_heart_a_attack1": {
+      "start": 22.384854166666667,
+      "duration": 2.5375
+    },
+    "cr3_heart_b_idle0": {
+      "start": 25.202354166666666,
+      "duration": 1.7376041666666666
+    },
+    "cr3_heart_b_idle1": {
+      "start": 27.219958333333334,
+      "duration": 1.8625
+    },
+    "cr3_heart_b_attack0": {
+      "start": 29.362458333333333,
+      "duration": 2.51975
+    },
+    "cr3_heart_b_attack1": {
+      "start": 32.16220833333333,
+      "duration": 2.483979166666667
+    }
+  },
+  "WARDEN_ART_DATA": "assets/images/warden-hollowed-d752e4dcecfd.webp"
+}

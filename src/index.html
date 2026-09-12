@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="ASHFALL: Neon Ward — Beta 0.2.0. Explore a living hospital. Fight for room to breathe. A self-contained horror FPS.">
+<meta name="theme-color" content="#11071d">
+<title>ASHFALL // NEON WARD — Beta 0.2.0</title>
+<link rel="stylesheet" href="{{STYLE_PATH}}">
+</head>
+<body class="beta nav-hud creature-auditions">
+<canvas id="game" tabindex="-1" aria-label="ASHFALL first person horror shooter"></canvas>
+<div id="shade"></div><div id="grain"></div>
+<div id="hud" class="hidden">
+ <div id="top"><div id="objectiveBlock"><div class="label">ASHFALL / NEON WARD</div><div class="ward" id="wardName">01 <b>ADMISSIONS</b></div><div id="goal">FIND YOUR WAY THROUGH THE WARD</div><div id="wfSystems" class="hidden"></div><div id="fvStatus" class="hidden"></div><div id="questInventory" class="hidden"><span id="questKeys"></span><span id="questExt"></span></div></div><div id="compass" class="hidden" data-direction="ahead" role="group" aria-label="Route guidance">
+ <span id="compassArrow" aria-hidden="true">↑</span>
+ <span id="navGlyph" aria-hidden="true">
+  <svg class="nav-ahead" viewBox="0 0 24 24" focusable="false"><path d="M12 20V4m-7 7 7-7 7 7"/></svg>
+  <svg class="nav-left" viewBox="0 0 24 24" focusable="false"><path d="M19 20v-8a5 5 0 0 0-5-5H4m6-6L4 7l6 6"/></svg>
+  <svg class="nav-right" viewBox="0 0 24 24" focusable="false"><path d="M5 20v-8a5 5 0 0 1 5-5h10m-6-6 6 6-6 6"/></svg>
+  <svg class="nav-behind" viewBox="0 0 24 24" focusable="false"><path d="M18 20V9a6 6 0 0 0-12 0v8m-4-4 4 4 4-4"/></svg>
+  <svg class="nav-near" viewBox="0 0 24 24" focusable="false"><path d="M19 9c0 5-7 12-7 12S5 14 5 9a7 7 0 0 1 14 0Z"/><circle cx="12" cy="9" r="2"/></svg>
+  <svg class="nav-signs" viewBox="0 0 24 24" focusable="false"><path d="M12 3v18M3 6h14l4 4-4 4H3Z"/></svg>
+ </span>
+ <span id="compassCopy"><span id="compassText"></span><small id="wfNavHint"></small></span>
+</div>
+<div id="scorebox"><div class="label" id="scoreLabel">SCORE</div><div id="score">000000</div><div id="time">00:00.00</div></div></div>
+ <section id="bossHud" class="hidden" aria-label="The Heart boss">
+  <div class="bossHeading"><strong id="bossTitle">THE HEART</strong><span id="bossHealth">100%</span></div>
+  <div id="bossMeter" role="progressbar" aria-label="The Heart health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div id="bossTrail"></div><div id="bossFill"></div><i class="bossMark bossMarkOne"></i><i class="bossMark bossMarkTwo"></i></div>
+  <div id="bossState">AWAKENING</div>
+ </section>
+ <div id="interactPrompt" class="hidden"><strong id="interactAction"></strong><span id="interactHint"></span></div>
+ <div id="feed"></div><div id="comboWrap"><div id="combo">2×</div><div id="comboText">KEEP FEEDING</div><div id="comboTrack"></div></div><div id="message"></div>
+ <div id="bottom"><div id="lifeBlock"><div class="label">SIGNAL / LIFE</div><div id="lifeLabel"><b id="life">100</b><span id="lifeHint">KILL TO REFILL</span></div><div id="lifeTrack"><div id="lifeFill"></div></div><div id="dashLabel">[SPACE] DASH READY</div></div><div id="weaponBlock"><div id="armory"><span class="slot active" id="slot0">1 / RUST</span><span class="slot" id="slot1">2 / HEX</span><span class="slot" id="slot2">3 / GRAVE</span><span class="slot hidden" id="slot3">4 / SERAPH</span></div><div id="weaponName">RUSTSHOT</div><div id="ammoLine"><span id="ammo">6</span> <span id="reserve">/ 48</span></div></div></div><div id="help">WASD MOVE · SPACE DASH · Q MELEE · R RELOAD · E USE · M MAP · TAB PEEK · U MUTE · ESC PAUSE</div>
+</div>
+<canvas id="map" width="150" height="150" class="hidden" aria-label="Ward map"></canvas>
+<div id="start" class="overlay"><main class="menu"><div class="micro"><span id="buildLabel">BETA 0.2.0</span></div><h1>ASHFALL</h1><div class="subtitle">NEON WARD</div><p class="intro">The hospital is alive. Find a way through it.<br><strong>Explore the wards. Fight for room to breathe. Get out.</strong></p><div class="controls"><div><b>W A S D</b> Move</div><div><b>MOUSE</b> Aim + fire</div><div><b>SPACE / SHIFT</b> Dash</div><div><b>1–4 / WHEEL</b> Equipment</div><div><b>R / Q</b> Reload / melee</div><div><b>M / TAB</b> Map / peek</div><div><b>E / U / ESC</b> Use / mute / pause</div></div><p class="touchOnly intro">Left stick to move. Swipe the right side to aim.<br>Use FIRE, DASH, and GUN to fight. MAP pauses the action.</p><div class="modeRow"><span class="label">DIFFICULTY</span><button class="mode" data-mode="0" aria-pressed="false">FORGIVING</button><button class="mode" data-mode="1" aria-pressed="true">STANDARD</button><button class="mode" data-mode="2" aria-pressed="false">UNKIND</button></div><button id="startTest" class="hidden" hidden inert disabled aria-hidden="true" tabindex="-1">DEVELOPMENT</button><button class="cta" id="startBtn" disabled>PREPARING THE WARD…</button> <button class="secondary" id="startSettings">OPTIONS</button><div id="error" class="hidden"></div><details class="betaGuide"><summary>CONTROLS + BETA NOTES</summary>
+ <p><strong>Start with Standard.</strong> Forgiving gives you more room to explore; Unkind raises the pressure. Difficulty, audio, resolution and reduced flashes are in Options.</p>
+ <p><strong>Keyboard:</strong> WASD move · mouse aim / left click fire · 1–4 or wheel switch available equipment · R reload · Q or right click melee · Space / Shift dash · E use · M map · Tab peek · U mute · Esc pause.</p>
+ <p><strong>Touch:</strong> left stick moves, swipe to aim, FIRE / DASH / GUN / USE handle actions. MAP pauses while you get your bearings.</p>
+ <p><strong>Look around.</strong> Read the signs, follow the current objective, and use E or USE when an interaction appears. The map lets you choose between available destinations.</p>
+ <p><strong>Keep this page open.</strong> Checkpoints work during the current session. Closing or reloading the page starts a new run.</p>
+ <p><strong>For feedback:</strong> what felt great, where you got lost, whether a fight felt unfair, and any glitches or slowdowns. The pause and end screens can prepare version and session details to copy into your message.</p>
+</details>
+<div class="note">Headphones recommended. Contains flashing effects; reduce them in Options.<br><span id="bestText"></span></div><div class="stamp">PATIENT CONDITION<strong>CRITICAL</strong>FIND ROOM TO BREATHE.<br>FIND A WAY OUT.</div></main></div>
+<div id="pause" class="overlay hidden"><div class="smallPanel"><div class="micro" id="betaPauseVersion">BETA 0.2.0 · SIGNAL HELD</div><h2>TAKE A BREATH.</h2><p class="intro">Your run is paused.</p><button id="resumeBtn" class="cta">BACK INTO IT</button> <button class="secondary" id="pauseSettings">OPTIONS</button><br><button class="secondary" id="pauseMap">MAP · M</button><button class="secondary" id="restartBtn">RESTART RUN</button><button class="secondary" id="pauseTest">TEST WARD</button><button class="secondary" id="pauseMenu">MAIN MENU</button><details class="betaFeedback" id="betapauseFeedback"><summary>BETA FEEDBACK · 0.2.0</summary><p>Include what happened, what you expected, and a screenshot if possible.</p><textarea id="betapauseReport" readonly aria-label="Beta feedback details" spellcheck="false"></textarea><button id="betapauseCopy" class="secondary" type="button">COPY FEEDBACK DETAILS</button><p id="betapauseStatus" role="status"></p></details></div></div>
+<div id="settings" class="overlay hidden"><div class="smallPanel"><div class="micro">TUNE THE FEVER</div><h2>OPTIONS</h2><label class="setting">Music<input id="musicVol" type="range" min="0" max="100" value="48"></label><label class="setting">Effects + voices<input id="sfxVol" type="range" min="0" max="100" value="80"></label><label class="setting">Mouse sensitivity<input id="sensitivity" type="range" min="20" max="180" value="75"></label><label class="setting">Screen shake<input id="shakeAmount" type="range" min="0" max="100" value="65"></label><label class="setting">Difficulty<select id="difficulty" style="background:#150d18;color:#f3e9ef;border:1px solid #46304f;padding:5px 9px;font:inherit;font-size:13px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer"><option value="0">Forgiving</option><option value="1" selected>Standard</option><option value="2">Unkind</option></select></label><p id="difficultyNote" style="margin:-2px 0 10px;font-size:12px;opacity:.62;letter-spacing:.02em">The approved balance.</p><label class="setting">Render resolution<input id="renderRes" type="range" min="50" max="100" step="5" value="100"></label><label class="setting">Reduced flashes + motion<input id="reduceFx" type="checkbox"></label><label class="setting">Always show corner map<input id="showMap" type="checkbox"></label><label class="setting">Mute all audio · U<input id="muteAll" type="checkbox"></label><button class="cta" id="settingsBack">DONE</button><details class="audioCredits mvPreview" hidden inert aria-hidden="true"><summary>CREATURE VOICE PREVIEW</summary>
+ <p>Compare the new voices without entering combat. Each listen plays different breath, attack and death takes.</p>
+ <label class="setting">Creature<select id="mvPreviewSpecies"><option value="0">The Unstitched</option><option value="1">Spine Runner</option><option value="2">The Orderly</option></select></label>
+ <label class="setting">Distance<select id="mvPreviewDistance"><option value="2">Nearby · 2 m</option><option value="8">Farther away · 8 m</option></select></label>
+ <button id="mvPreviewPlay" class="secondary" type="button">LISTEN</button><button id="mvPreviewStop" class="secondary" type="button">STOP</button>
+ <p id="mvPreviewStatus" role="status">Choose a creature. Listen plays a breath, attack and death variation.</p>
+</details>
+<details class="audioCredits"><summary>AUDIO CREDITS</summary><p><a href="https://opengameart.org/content/dark-descent" target="_blank" rel="noopener">Dark Descent — Matthew Pablo</a>. <a href="https://opengameart.org/content/horror-sound-effects-library" target="_blank" rel="noopener">Horror Sound Library — Little Robot Sound Factory</a>. <a href="https://opengameart.org/content/shotgun-shoot-reload" target="_blank" rel="noopener">Shotgun / reload recordings — Mike Koenig (Soundbible), submitted by qubodup</a>. Licensed under <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. Edited, layered, pitched, filtered and mixed for this game; score tempo, loop and mastering adjusted. The Heart finale adds three tempo-matched arrangements and a layered collapse sequence derived from these same recordings. The exterior adds original soft foliage air, shore wash, distant city, diesel, tyre skid and fire beds. Cerberus layers the existing voice recordings at distinct pitches and adds an original beam texture. Its dedicated score, Three Throats, is an original 162 BPM composition with distorted bass strings, metallic percussion, choir textures and a Phrygian bell motif; percussion and voice textures use transformed samples from the credited effects bank. It contains no samples of the ward or Heart music. The hell threshold adds original synthesized stereo storm wind and rolling thunder. Beta 0.1.1 adds original nonverbal creature phonation, turbulent breath and throat resonances, layered with short grains from the credited nonvocal flesh/bone recordings. The new creature bank contains no human vocal recordings.</p><p>Outdoor wildlife: <a href="https://commons.wikimedia.org/wiki/File:Field_cricket_Gryllus_pennsylvanicus.ogg" target="_blank" rel="noopener">Field cricket — Thatcher</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Strix_aluco_male.oga" target="_blank" rel="noopener">Tawny owl — Vianney Bajart</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Trimmed, filtered, faded, encoded and spatially mixed. The cricket and owl audio adaptations remain available under their respective licenses.</p><p>Additional CC0 recordings: <a href="https://opengameart.org/content/15-vocal-male-strainhurtpainjump-sounds" target="_blank" rel="noopener">qubodup</a>, <a href="https://opengameart.org/content/monster-sound-effects-2" target="_blank" rel="noopener">Ogrebane</a>, <a href="https://opengameart.org/content/25-cc0-bang-firework-sfx" target="_blank" rel="noopener">rubberduck</a>.</p></details></div></div>
+<div id="upgrade" class="overlay hidden"><div class="smallPanel"><div class="micro" id="wardCleared">SEAL 01 BROKEN</div><h2>KEEP THE CHANGE.</h2><p class="intro">Signal restored. Take one mutation into the next ward.</p><div id="upgradeList"></div></div></div>
+<div id="end" class="overlay hidden"><div class="smallPanel"><div class="micro" id="endLabel">SIGNAL LOST</div><h2 id="endTitle">BACK TO ASH.</h2><p class="intro" id="endReason"></p><div class="stats"><div><b id="endScore">0</b><span>SCORE</span></div><div><b id="endKills">0</b><span>KILLS</span></div><div><b id="endTime">0:00</b><span>TIME</span></div><div><b id="endCombo">0×</b><span>BEST COMBO</span></div></div><button class="cta hidden" id="leaveHospitalBtn">LEAVE HOSPITAL →</button><button class="cta" id="retryBtn">ONE MORE RUN</button><br><button class="secondary" id="menuBtn">MAIN MENU</button><details class="betaFeedback" id="betaendFeedback"><summary>BETA FEEDBACK · 0.2.0</summary><p>Include what happened, what you expected, and a screenshot if possible.</p><textarea id="betaendReport" readonly aria-label="Beta feedback details" spellcheck="false"></textarea><button id="betaendCopy" class="secondary" type="button">COPY FEEDBACK DETAILS</button><p id="betaendStatus" role="status"></p></details></div></div>
+<div id="touch" class="touchOnly hidden"><div id="stick"><div id="stickKnob"></div></div><div id="touchBtns"><button id="touchFire">FIRE</button><button id="touchDash">DASH</button><button id="touchGun">GUN</button><button id="touchUse" class="hidden">USE</button></div><button id="touchMap" aria-label="Open map and pause">MAP</button><button id="touchPause" aria-label="Pause game">Ⅱ</button></div>
+
+<div id="sequenceControls" class="hidden"><span id="sequenceCaption"></span><button id="sequenceSkip" aria-label="Skip to the safe post-crash checkpoint">SKIP · ENTER</button></div>
+<div id="reviewBar" class="hidden"><div id="reviewBarText"></div><div id="reviewStatus"></div></div>
+<button id="reviewPanelBtn" class="hidden" aria-label="Open Test Ward controls">T · TEST</button>
+<div id="testWard" class="overlay hidden">
+ <section class="reviewPanel" aria-labelledby="testTitle">
+  <header class="reviewHeader"><div class="micro">ASHFALL / HUD REVIEW 0.1.2</div><h2 id="testTitle">FIND YOUR BEARING</h2><p>Use <b>Explore</b> for a calm, protected review. Start in <b>Admissions chapter</b>, then compare <b>Level 2 — Fever Theatre</b>, <b>Recovery expedition — either order</b> and <b>Heart — aftermath</b>. Check the arrow and destination at a glance. <b>M</b> opens the map; <b>T</b> returns here.</p></header>
+  <div class="reviewGrid">
+   <div>
+    <label class="reviewField" for="reviewScene">Scene</label>
+    <select id="reviewScene"><optgroup label="Wards"><option value="admissions">Admissions</option><option value="fever">Fever Theatre</option><option value="heart">Heart Ward</option></optgroup><optgroup label="Liminal spaces"><option value="fed">Fed Corridor</option><option value="loop">Loop Corridor</option><option value="mirror">Mirror</option></optgroup><optgroup label="Combat and weapons"><option value="range">Weapon range · 3 targets</option><option value="patient">The Unstitched</option><option value="crawler">Spine Runner</option><option value="orderly">The Orderly</option><option value="mixed">Mixed combat drill</option></optgroup></select>
+    <p id="reviewHint" class="reviewHint"></p>
+    <div class="reviewStarting"><label class="reviewField">Health on reset<input id="reviewHealth" type="number" min="1" max="100" value="100"></label><label class="reviewField">Starting weapon<select id="reviewWeapon"><option value="0">Rustshot</option><option value="1">Hexdrive</option><option value="2">Gravemaker</option></select></label></div>
+   </div>
+   <div>
+    <label class="reviewField" for="reviewPreset">Conditions</label>
+    <select id="reviewPreset"><option value="explore">Explore · calm, protected</option><option value="drill">Combat drill · active, protected</option><option value="normal">Normal conditions · damage enabled</option><option value="custom" disabled>Custom conditions</option></select>
+    <div class="reviewToggles"><label><input id="reviewAI" type="checkbox"> Combat AI</label><label><input id="reviewDamage" type="checkbox"> Incoming damage</label><label><input id="reviewAmmo" type="checkbox" checked> Refill reserve ammo</label><label><input id="reviewMusic" type="checkbox"> Music + liminal drone</label><label><input id="reviewHoldBoss" type="checkbox"> Hold boss health</label><label><input id="reviewBloodAttacks" type="checkbox" checked> Heart blood attacks</label></div>
+    <p class="reviewSmall">Scripted liminal events still run with combat AI off. Reloads retain their normal timing. Test scores are never saved.</p>
+   </div>
+  </div>
+  <div class="reviewActions"><button id="reviewLaunch" class="cta">LOAD SCENE</button><button id="reviewResume" class="secondary hidden">RESUME CURRENT SCENE</button><button id="reviewCheckpoint" class="secondary hidden">RESTORE THEATRE CHECKPOINT</button><button id="reviewToySave" class="secondary hidden">CAPTURE SERAPHIM CHECKPOINT</button><button id="reviewDeath" class="secondary">REPLAY HEART DEATH</button><button id="reviewOpenExit" class="secondary hidden">OPEN CURRENT EXIT</button></div>
+  <details class="reviewAudio"><summary>SOUND PREVIEWS</summary><p class="reviewSmall">Plays in the current room's mix. Simulation stays paused. Your volume settings apply.</p><div class="soundButtons"><button id="soundRust">Rustshot</button><button id="soundHex">Hexdrive</button><button id="soundGrave">Gravemaker</button><button id="soundPain">Pain</button><button id="soundAgony">Agony</button><button id="soundRoom">Room tone</button></div><div class="voiceRow"><select id="reviewVoice" aria-label="Creature voice"><option value="0">The Unstitched</option><option value="1">Spine Runner</option><option value="2">The Orderly</option></select><button id="soundCreature">Creature attack</button><button id="soundStop">Stop audio</button></div><p id="reviewAudioStatus" class="reviewSmall" aria-live="polite">Choose a sound to preview.</p></details>
+  <details class="reviewGuide"><summary>WHAT TO CHECK IN THIS VERSION</summary><p class="reviewSmall"><b>0.1.2 — Navigation HUD.</b> The guide has its own compact space, consistent icons and readable instructions. This phase changes presentation; enemy audio remains pending its separate redesign.</p><ol><li>At a junction, glance up: can you read both the destination and the direction immediately?</li><li>Turn fully around, then approach your destination. Are the turn-around and nearby symbols clear?</li><li>In Fever Theatre, open M and choose a different system. Check the selected name and long labels.</li><li>Compare dark corridors, neon rooms and the exterior. Is the panel readable without drawing too much attention?</li><li>Compare Heart — aftermath and Garden gates — after the guardian. Boss information must stay at the edge; guidance must not overlap it.</li><li>On a phone, check portrait and landscape. Text should remain readable; HUD elements should stay apart.</li></ol><p class="reviewSmall">Report the scene, destination, browser and screen size. A screenshot is especially useful for placement or crowding feedback.</p></details>
+<footer class="reviewFooter"><div><button id="reviewOptions" class="secondary">AUDIO + DISPLAY OPTIONS</button><button id="reviewReturn" class="secondary">BACK TO MENU</button><button id="reviewMenu" class="secondary">END TEST / MAIN MENU</button></div><p class="reviewSmall">In a test: <b>T</b> controls · <b>B</b> reset · <b>H</b> pain preview · <b>N</b> repeat chapter scene / restore targets · <b>ESC</b> pause</p><details><summary>SCENE DETAILS</summary><p id="reviewDiagnostics" class="reviewSmall">No test scene loaded.</p></details></footer>
+ </section>
+</div>
+
+
+<div id="mapPanel" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="wfMapTitle">
+ <section class="wfMapSheet">
+  <header class="wfMapHeader"><div><div class="micro">HOSPITAL PLAN · PAUSED</div><h2 id="wfMapTitle">ADMISSIONS</h2></div><button id="wfMapClose" type="button">BACK · M / ESC</button></header>
+  <p id="wfMapObjective"></p>
+  <canvas id="wfLargeMap" width="900" height="600" role="img" aria-label="North-up floor plan. The cream arrow shows you. The dotted route leads to the selected destination."></canvas>
+  <div class="wfMapLegend"><span><i class="wfYou"></i>You / facing</span><span><i class="wfSelected"></i>Destination</span><span><i class="wfLocked"></i>Locked</span><span><i class="wfDone"></i>Completed</span><span>··· Suggested route</span></div>
+  <p id="wfMapNote"></p><div id="wfDestinations" aria-label="Choose a destination"></div>
+ </section>
+</div>
+
+<div id="creatureAudition" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="csTitle" aria-describedby="csIntro">
+ <section class="cs-panel">
+  <header class="cs-header">
+   <div><div id="csKicker" class="cs-kicker">ASHFALL / AFTER THE CREDITS</div><h2 id="csTitle">CREATURE GALLERY</h2></div>
+   <button id="csBack" type="button" class="cs-back">BACK <span>ESC</span></button>
+  </header>
+  <p id="csIntro">Meet the creatures of Ashfall and listen to their chosen performances.</p>
+  <div class="cs-workspace">
+   <figure class="cs-portrait">
+    <canvas id="csArtwork" width="440" height="440" role="img" aria-label="The Unstitched"></canvas>
+    <div id="csArtStatus">Preparing creature artwork…</div>
+    <figcaption><strong id="csCreatureName">THE UNSTITCHED</strong><span id="csCreatureRole">Broken body · close pursuit</span></figcaption>
+   </figure>
+   <div class="cs-listening">
+    <div class="cs-selectors">
+     <label for="csCreature">CREATURE<select id="csCreature"><option value="unstitched">The Unstitched</option><option value="runner">Spine Runner</option><option value="orderly">The Orderly</option><option value="warden">The Warden</option><option value="heart">The Heart</option><option value="shepherd">Cerberus · Shepherd</option><option value="bulldog">Cerberus · Bulldog</option><option value="chihuahua">Cerberus · Chihuahua</option></select></label>
+     <label for="csEvent">PERFORMANCE<select id="csEvent"><option value="idle">Breath</option><option value="attack">Attack</option></select></label>
+    </div>
+    <p id="csApproval" class="cs-approval"></p>
+    <div id="csCandidates" class="cs-candidates" aria-label="Creature voice playback">
+     <button id="csPlaySelected" class="cs-candidate hidden" type="button" data-cs-voice="selected"><span class="cs-letter" aria-hidden="true">▶</span><span class="cs-candidate-copy"><strong>Chosen voice</strong><span id="csDescriptionSelected">Approved performance</span></span><span class="cs-play-word">PLAY</span></button>
+     <button id="csPlayA" hidden class="cs-candidate hidden" type="button" data-cs-voice="a"><span class="cs-letter">A</span><span class="cs-candidate-copy"><strong>Direction A</strong><span id="csDescriptionA">First sound direction</span></span><span class="cs-play-word">PLAY</span></button>
+     <button id="csPlayB" hidden class="cs-candidate hidden" type="button" data-cs-voice="b"><span class="cs-letter">B</span><span class="cs-candidate-copy"><strong>Direction B</strong><span id="csDescriptionB">Second sound direction</span></span><span class="cs-play-word">PLAY</span></button>
+    </div>
+    <div class="cs-playback"><p id="csStatus" role="status" aria-live="polite">Choose a direction to listen.</p><button id="csStop" type="button">STOP</button></div>
+    <p id="csMethod" class="cs-method">Click again for the second take. Levels are matched for comparison. Uses your Effects + voices volume.</p>
+    <div id="csQuestions" class="cs-questions"><strong>LISTEN FOR</strong><p>Does it belong to this creature? Does it have physical weight? Would you want to hear it repeatedly?</p></div>
+   </div>
+  </div>
+  <footer class="cs-footer"><p>No combat, music or countdown. Playback stops when you leave.</p><details><summary>Recording credits</summary><div id="csCredits"><p>Recorded animal material, edited and layered for Ashfall:</p>
+<ul>
+ <li><a href="https://freesound.org/people/coldvet/sounds/404920/" target="_blank" rel="noopener noreferrer">Harvey dog growls</a> — coldvet / Frederick Bird; dog Harvey Bird.</li>
+ <li><a href="https://freesound.org/people/roman_cgr/sounds/223978/" target="_blank" rel="noopener noreferrer">Lion lament</a> — roman_cgr.</li>
+ <li><a href="https://freesound.org/people/JarredGibb/sounds/233172/" target="_blank" rel="noopener noreferrer">Pig grunt 4</a> — JarredGibb.</li>
+</ul>
+<p>All three are published under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0</a>. These edits use the publicly available HQ MP3 versions, not the original lossless recordings. Changes include excerpt selection, modest pitch/rate shifts, layering, rumble removal and level matching. No endorsement is implied.</p>
+
+<section id="creatureRound2Credits">
+  <h3>Recorded creature material</h3>
+  <p>Additional creature sounds use edited animal recordings by
+    <a href="https://freesound.org/people/felix.blume/sounds/134820/" target="_blank" rel="noopener noreferrer">felix.blume — French Bulldog</a>,
+    <a href="https://freesound.org/people/Mewsel/sounds/208030/" target="_blank" rel="noopener noreferrer">Mewsel — Chihuahua Barks</a>, and
+    <a href="https://freesound.org/people/D.jones/sounds/527844/" target="_blank" rel="noopener noreferrer">D.jones — Alligator Growls 02</a>.
+    Supporting recordings:
+    <a href="https://freesound.org/people/coldvet/sounds/404920/" target="_blank" rel="noopener noreferrer">coldvet — Harvey dog growls</a>,
+    <a href="https://freesound.org/people/roman_cgr/sounds/223978/" target="_blank" rel="noopener noreferrer">roman_cgr — Lion lament</a>, and
+    <a href="https://freesound.org/people/JarredGibb/sounds/233172/" target="_blank" rel="noopener noreferrer">JarredGibb — Pig grunt 4</a>.
+    All are released under
+    <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 1.0</a>.
+    Recordings were excerpted, layered, pitch-adjusted and level-matched for Ashfall.</p>
+</section>
+<section id="creatureRound3Credits">
+  <h3>Physical creature sound material</h3>
+  <p>The physical creature sound bank uses edited physical recordings from BigSoundBank:</p>
+  <ul>
+    <li><a href="https://bigsoundbank.com/bones-cracking-s0596.html" target="_blank" rel="noopener noreferrer">Bones cracking #1</a> — Joseph SARDIN.</li>
+    <li><a href="https://bigsoundbank.com/big-rope-s3426.html" target="_blank" rel="noopener noreferrer">Big rope</a> — Joseph SARDIN & Axeline T..</li>
+    <li><a href="https://bigsoundbank.com/creaking-of-wicker-s0865.html" target="_blank" rel="noopener noreferrer">Creaking of wicker</a> — Joseph SARDIN.</li>
+    <li><a href="https://bigsoundbank.com/manual-water-pump-and-metal-bucket-s0542.html" target="_blank" rel="noopener noreferrer">Manual water pump and metal bucket</a> — Joseph SARDIN.</li>
+    <li><a href="https://bigsoundbank.com/straw-suction-1-s1244.html" target="_blank" rel="noopener noreferrer">Straw, suction #1</a> — Joseph SARDIN.</li>
+    <li><a href="https://bigsoundbank.com/water-bubble-2-s0183.html" target="_blank" rel="noopener noreferrer">Water Bubble #2</a> — Joseph SARDIN.</li>
+    <li><a href="https://bigsoundbank.com/air-leak-s1486.html" target="_blank" rel="noopener noreferrer">Air leak</a> — Joseph SARDIN.</li>
+    <li><a href="https://bigsoundbank.com/heart-beat-4-s1929.html" target="_blank" rel="noopener noreferrer">Heart Beat #4</a> — Joseph SARDIN.</li>
+  </ul>
+  <p>All eight sources are <a href="https://bigsoundbank.com/licenses.html" target="_blank" rel="noopener noreferrer">released under CC0</a>.
+    Excerpts were layered, rate-adjusted, filtered, shaped and level-matched for Ashfall.
+    The heartbeat source is performed foley; the water bubbles are recorded in a tub.
+    These sounds do not reuse the animal recordings in the other creature voices.</p>
+</section>
+<p>The spectral Warden artwork was created for Ashfall with the built-in image generation tool.</p></div></details></footer>
+ </section>
+</div>
+<div id="cgCreditsOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="cgCreditsTitle">
+ <section class="cg-credits-panel">
+  <header class="cg-credits-header"><div><div class="cg-kicker">ASHFALL / NEON WARD</div><h2 id="cgCreditsTitle">CREDITS</h2></div><button id="cgCreditsBack" type="button">BACK · ESC</button></header>
+  <p class="cg-thanks">Thank you for stepping into the ward.</p>
+  <div id="cgCreditsBody"></div>
+  <footer class="cg-credits-footer"><p>Meet the creatures of Ashfall and listen to their chosen voices.</p><button id="cgCreditsGallery" type="button">CREATURE GALLERY</button></footer>
+ </section>
+</div>
+
+<script src="{{SCRIPT_PATH}}"></script>
+</body>
+</html>
