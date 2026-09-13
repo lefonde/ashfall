@@ -172,6 +172,7 @@ function s4qTick(dt){
  if(S4Q.done&&!CB.on)cbfJourneyBegin();
 }
 function s4qHud(){
+ if(!hudComposing){hudUpdate();return;}
  const active=s4qRunning();$('questInventory').classList.toggle('hidden',!active);if(!active)return;
  $('questKeys').textContent=(S4Q.keys?'✓ ':'○ ')+'KEYS';$('questExt').textContent=(S4Q.ext?'✓ ':'○ ')+'EXTINGUISHER';
  $('questKeys').classList.toggle('found',S4Q.keys);$('questExt').classList.toggle('found',S4Q.ext);
@@ -179,9 +180,9 @@ function s4qHud(){
  let goal=S4Q.moved?'FOLLOW THE HEDGE WALK TO THE GARDEN':S4Q.keys&&S4Q.ext?'RETURN TO THE AMBULANCE':S4Q.keys?'FIND THE BUS SHELTER EXTINGUISHER':S4Q.ext?'FIND STAFF CAR 04 · PARKING':'KEYS IN PARKING · EXTINGUISHER AT BUS STOP';
  if(S4Q.done)goal='THE GUARDIAN BLOCKS THE GATES';
  if(S4Q.action)goal=(S4Q.action.kind==='extinguish'?'EXTINGUISHING ENGINE FIRE':'CLEARING THE GARDEN WALK')+' · '+Math.min(100,Math.floor(S4D.t/(S4Q.action.kind==='extinguish'?4.15:5.6)*100))+'%';
- $('goal').textContent=near?'[E] '+near.label:sign?'[E] '+sign.interact:goal;
+ $('goal').textContent=near?(coarse?'USE · ':'[E] ')+near.label:sign?(coarse?'USE · ':'[E] ')+sign.interact:goal;
  $('lifeHint').textContent=threats.length?(review.active&&!review.damage?'PROTECTED':'KILL TO RESTORE'):'TAKE A BREATH';
- $('touchUse').classList.toggle('hidden',!near&&!sign);$('touchUse').textContent=near?near.touch:'READ';
+ $('touchUse').classList.toggle('hidden',!near&&!sign);touchSetLabel('touchUse',near?near.touch:'READ');
  // Guide along roads, never straight through the dense forest.
  let target,label;
  if(S4Q.moved){target={x:56.5,y:39};label='GARDEN';if(player.x<57&&player.y<40)target={x:43,y:26};}

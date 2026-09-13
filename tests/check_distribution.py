@@ -56,7 +56,7 @@ def main():
     ids = re.findall(r'\bid="([^"]+)"', html)
     assert len(ids) == len(set(ids)), 'duplicate HTML IDs'
     constants = constants_in(script)
-    assert constants['BUILD']['version'] == '0.2.0' and constants['BUILD']['distribution'] == 'github-pages'
+    assert constants['BUILD']['version'] == '0.2.1' and constants['BUILD']['distribution'] == 'github-pages'
     assert constants['HEART_AUDIO_CUES'], 'multiline finale cue data is required'
     media = json.loads((SRC / 'media.json').read_text())
     assert len(media) == 29
@@ -95,16 +95,9 @@ def main():
                     assert base64.b64decode(encoded) == (ROOT / name).read_bytes(), key
             elif key != 'BUILD':
                 assert old == constants[key], key + ' unchanged'
-        for match in re.finditer(r'// SOURCE: ([^\n]+)\n([\s\S]*?)(?=// SOURCE: |$)', old_script):
-            name, old = match.groups()
-            assert normalize_loading(name, old) == bundled[name], name + ' changes exceed asset loading'
-        assert re.search(r'<style>([\s\S]*?)</style>', original).group(1) == css
-        old_markup = re.sub(r'<style>[\s\S]*?</style>', '', original, count=1)
-        old_markup = re.sub(r'<script>[\s\S]*?</script>', '', old_markup, count=1)
-        new_markup = re.sub(r'<link rel="stylesheet"[^>]+>', '', html, count=1)
-        new_markup = re.sub(r'<script src="[^"]+"></script>', '', new_markup, count=1)
-        assert old_markup == new_markup, 'game UI must remain unchanged'
-        print('PASS exact beta baseline: all media, cues, CSS/UI and 63 ordered modules preserved; only six audio transport sites change.')
+        # This release intentionally changes gameplay UI and input. Its inherited
+        # media and cue data must still be byte-for-byte identical to beta 0.2.0.
+        print('PASS beta 0.2.0 baseline: all 29 media payloads and audio cue constants preserved exactly.')
     size = len(html.encode()) + len(script.encode()) + len(css.encode()) + sum(item['bytes'] for item in media)
     print('PASS static project-relative paths, content-hashed assets, full script/cue data, unique IDs and public gallery policy.')
     print('Website bytes before HTTP compression:', size, '| HTML:', len(html.encode()))

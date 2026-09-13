@@ -110,7 +110,7 @@ function fvHud(){
   const beats=[];
   if(FV.ventT>0)beats.push('SPINE SUPPRESSED '+Math.ceil(FV.ventT)+'s');
   if(FV.purgeT>0)beats.push('PURGE '+Math.ceil(FV.purgeT)+'s / KEEP MOVING');
-  if(!beats.length)beats.push(FV.returnOpen?'STORE RETURN OPEN':FV.closed?'Choose your next system · M opens the map':'Find a labelled control in each operating room. [E] to use.');
+  if(!beats.length)beats.push(FV.returnOpen?'STORE RETURN OPEN':FV.closed?'Choose your next system · M opens the map':'Find a labelled control in each operating room. '+(coarse?'Tap USE.':'[E] to use.'));
   $('fvStatus').textContent=beats.join(' · ');
  }
  const p=on?fvNearestUse():null;
@@ -120,7 +120,7 @@ function fvHud(){
  const action=p.id==='recovery'?(info.done?'SUPPLY EMPTY':info.ready?'TAKE EMERGENCY SUPPLY':'NO POWER / ISOLATE OR 1'):
   info.done?'SYSTEM ISOLATED':p.id==='OR3'&&FV.purgeT>0?'PURGE RUNNING':system.action;
  $('interactAction').textContent=(info.done||!info.ready||info.progress>0?'':coarse?'USE · ':'[E] ')+action;
- $('touchUse').textContent=info.done?'DONE':p.id==='OR3'&&FV.purgeT>0?'RUNNING':'USE';
+ touchSetLabel('touchUse',info.done?'DONE':p.id==='OR3'&&FV.purgeT>0?'RUNNING':'USE');
  $('interactHint').textContent=p.id==='recovery'?'One use: +40 life, reserve ammunition and a checkpoint.':system.hint;
  $('interactPrompt').style.borderColor=info.color;
 }

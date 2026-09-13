@@ -1,16 +1,15 @@
 {
   "BUILD": {
-    "id": "BETA-0.2.0",
-    "version": "0.2.0",
+    "id": "BETA-0.2.1",
+    "version": "0.2.1",
     "channel": "friends-beta",
-    "title": "Friends Beta",
-    "release_date": "2026-09-12",
-    "parent": "ashfall-beta-0.1.8-warden-motion.html",
-    "parent_sha256": "451287a1d9af92a15717fb144718700e3bc1febb6c809a6dfb63010ec1272db9",
-    "status": "Ready for beta feedback",
+    "title": "Mobile Controls & HUD",
+    "release_date": "2026-09-13",
+    "parent": "ashfall-web-beta-0.2.0.zip",
+    "status": "Ready for mobile playtest",
     "source_digest": "b34d6291523d",
     "distribution": "github-pages",
-    "standalone_sha256": "c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b"
+    "baseline_standalone_sha256": "c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b"
   },
   "ASSETS": {
     "monsters": "assets/images/monsters-7a8d8ffd4fae.png",

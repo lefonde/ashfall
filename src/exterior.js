@@ -82,10 +82,10 @@ function s4Tick(){if(!s4Running()||mode!=='playing')return;const zone=s4Zone();i
 function s4NearbyLabel(){let best=null,near=4.6;for(const l of S4.labels){if(!l.interact||(l.front&&(player.x-l.x)*l.front[0]+(player.y-l.y)*l.front[1]<0))continue;const d=Math.hypot(player.x-l.x,player.y-l.y),a=Math.abs(angle(Math.atan2(l.y-player.y,l.x-player.x)-player.a));if(d<near&&a<.85&&(d<.3||s4CastRay(player.x,player.y,(l.x-player.x)/d,(l.y-player.y)/d,d-.2).d>=d-.21)){best=l;near=d;}}return best;}
 function s4Hud(){
  $('wardName').innerHTML='04 <b>NO WAY OUT</b>';
- const sign=s4NearbyLabel();$('goal').textContent=sign?'[E] '+sign.interact:'EXPLORE THE GROUNDS · '+(S4.zone||'ENTRANCE COURT');
+ const sign=s4NearbyLabel();$('goal').textContent=sign?(coarse?'USE · ':'[E] ')+sign.interact:'EXPLORE THE GROUNDS · '+(S4.zone||'ENTRANCE COURT');
  $('lifeHint').textContent='TAKE A BREATH';$('compassText').textContent='HOSPITAL';
  $('compassArrow').style.transform='rotate('+angle(Math.atan2(50-player.y,64-player.x)-player.a)+'rad)';
- $('touchUse').classList.toggle('hidden',!sign);$('touchUse').textContent='READ';
+ $('touchUse').classList.toggle('hidden',!sign);touchSetLabel('touchUse','READ');
  if(review.active){$('reviewBarText').textContent='NO WAY OUT · CALM EXTERIOR REVIEW';$('reviewStatus').textContent='T CONTROLS · B RESET · M MAP · TAB PEEK · CALM ENTRY · NO ENCOUNTERS';}
 }
 function s4Interact(){if(!s4Running()||mode!=='playing')return false;if(s4tInteract()||s4dInteract())return true;const l=s4NearbyLabel();if(!l)return false;feed(review.active?l.read:l.read.replace('T opens the review guide.','ESC → TEST WARD opens the review guide.'));return true;}

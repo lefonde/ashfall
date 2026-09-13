@@ -1,44 +1,57 @@
-# ASHFALL // NEON WARD
+# ASHFALL // NEON WARD — Beta 0.2.1
 
-**[Play beta 0.2.0](https://lefonde.github.io/ashfall/)**
+Mobile controls, landscape layout, clear interactions and stable navigation for the four-chapter horror FPS. This is a downloadable release; uploading it is a separate step from building it.
 
-A four-chapter browser horror FPS: a living hospital, overwhelming weapons and places that should not exist.
+## Play
 
-Start on Standard. Forgiving offers more room to explore; Unkind raises the pressure. Headphones recommended. The game contains horror, gore and flashing effects; Options includes reduced flashes and motion.
+For a website, publish the contents of this folder with `index.html` at the root. Keep `assets/` beside it. GitHub Pages can serve it from the repository root; `.nojekyll` is included. A local web server also works: `python3 -m http.server 8000`, then open `http://localhost:8000`.
 
-## Playing and beta feedback
+The separately supplied `ashfall-beta-0.2.1.html` contains the same game and all media in one file for offline desktop use. On phones, use the hosted website: opening HTML from a phone's file preview is not equivalent to running it in a browser tab.
 
-WASD move · mouse aim/fire · 1–4 or wheel switch available equipment · R reload · Q/right click melee · Space/Shift dash · E interact · M map · Tab peek · U mute · Esc pause.
+### Touch
 
-Checkpoints last for the current browser session. Closing or reloading loses the run. Mouse and keyboard is the main beta target; touch controls are also included.
+- Left stick: move. Swipe open scene space to aim.
+- Hold **FIRE** to shoot; drag the same finger to aim while shooting. A separate aim finger also works.
+- **DASH**, **MELEE**, **RELOAD**, and **GUN**: immediate actions. GUN cycles available equipment, including a carried Seraphim.
+- The separate **USE** button appears for a reachable item, sign, ambulance, angel, or open chapter exit. Its label describes the current action.
+- **MAP** pauses the action. **PAUSE** opens the pause menu. Rotate to landscape for the widest view; rotating during play pauses and releases all held controls.
+- **Options → Aim sensitivity** adjusts touch and mouse aiming. Fullscreen is offered when the browser exposes the required API. Gameplay fits the visible browser area without fullscreen.
 
-Use Pause → Beta Feedback → Copy Feedback Details to prepare a bug report. Nothing is sent automatically. Please describe your best moment, any confusing objective, unfair fight, repetitive sound, slowdown or retry problem. Include device/browser and difficulty. After completing the campaign, the credits lead to a creature gallery with the selected voices.
+Keyboard: WASD move · mouse aim/fire · 1–4 or wheel equipment · R reload · Q/right click melee · Space/Shift dash · E use · M map · Tab peek · U mute · Esc pause.
 
-## Website layout
+Start on Standard. Headphones recommended. Reduced flashes and motion are available in Options. Checkpoints last for the current browser session; closing or reloading starts a fresh run.
 
-- `index.html`: lightweight entry page.
-- `assets/images/` and `assets/audio/`: exact original artwork and MP3 recordings, saved as individual binary files. Filenames contain content hashes so unchanged media can be reused from browser cache across updates.
-- `src/`: ordered game modules, stylesheet, page template, cue data and media manifest.
-- `assets/code/`: generated runtime and CSS. One runtime script preserves the original game's shared scope and function ordering.
-- `tools/build.py`: dependency-free static packager.
-- `tests/`: native distribution and asset-loader checks.
+## Changes
 
-Build with Python 3:
+- Safe-area-aware edge controls, compact HUD and portrait/short-landscape layouts. USE appears independently of the combat controls so they do not move during an interaction.
+- Canvas, HUD and menus follow the visible viewport as browser chrome changes. Mobile weapons occupy less of the view.
+- Independent touch ownership, drag-to-aim firing, press feedback, cancellation cleanup, and gameplay-scoped selection/context-menu/gesture guards. Menus remain scrollable and feedback text remains selectable.
+- One final HUD update path removes conflicting chapter 4 compass/objective updates. Direction thresholds have a small dead band to prevent jitter.
+- Clear contextual interaction prompts and matching touch actions for quest items, ambulance, Seraphim and exits.
+- Chapters 1 and 2 have readable exit plaques and steady light/door trim once the exit unlocks.
+
+All 29 media files, audio cue data, selected creature voices and existing campaign progression are preserved. See [PLAYTEST.md](PLAYTEST.md) for focused checks and validation limits.
+
+## Build and check
+
+No npm install or application server is required for deployment. `src/modules.json` defines the ordered runtime modules, which are compiled into one script to preserve shared scope.
 
 ```sh
 python3 tools/build.py
 python3 tests/check_distribution.py
 node tests/check_asset_loader.cjs
+node tests/check_hud_interactions.cjs
+node tests/check_mobile_input.cjs
 ```
 
-Commit source changes together with the generated page/code. Media must retain their manifest checksums; replacing a recording or image requires a new content-hashed filename and corresponding manifest entry. No npm installation or application server is needed. GitHub Pages publishes `main` / repository root; `.nojekyll` keeps it a plain static site.
+To verify inherited media and cue data, pass the original beta 0.2.0 HTML to `check_distribution.py --standalone /path/to/ashfall-beta-0.2.0.html`.
 
-The web build uses approximately 37.7 MB before HTTP compression, compared with the 50.1 MB standalone HTML. It removes base64 transport overhead without reducing art or audio quality. A first visit still downloads the game's media; this release does not introduce chapter streaming or persistent campaign saves.
+To export one self-contained HTML after building:
 
-## Credits and verification
+```sh
+python3 tools/export_standalone.py /path/to/ashfall-beta-0.2.1.html
+```
 
-Full recording attributions and license links remain in the game's Options and credits. [CREDITS.md](CREDITS.md) contains a copy for repository readers.
+Commit `src/`, generated `index.html`, and `assets/code/` together. Media filenames contain content hashes. Keep their exact filenames and bytes; the original standalone beta 0.2.0 checksum is `c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b`.
 
-Gameplay baseline: standalone beta 0.2.0, SHA-256 `c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b`. Website changes are limited to loading separate assets and static packaging. All image/audio bytes, cue offsets, selected voices, game rules and the short Warden encounter are preserved.
-
-Native checks verify source/media preservation and network-to-decoder behavior. They do not certify real-browser rendering, device performance or subjective sound quality; please include these in beta feedback.
+Full audio attributions remain in Options and credits; see [CREDITS.md](CREDITS.md).

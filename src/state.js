@@ -7,10 +7,43 @@ try{const saved=JSON.parse(localStorage.getItem('ashfall-settings-v2')||'{}');if
  for(const key of ['reduce','map','mute'])if(typeof saved[key]==='boolean')settings[key]=saved[key];
 }}catch{}
 let best=0;try{best=Math.max(0,Number(localStorage.getItem('ashfall-best-v2'))||0);if(!Number.isFinite(best))best=0;}catch{}
-const coarse=matchMedia('(pointer: coarse)').matches;
+let coarse=matchMedia('(pointer: coarse)').matches;
+document.body.classList.toggle('touch-device',coarse);
 let W=640,H=360,frame,px,zBuffer;const world=document.createElement('canvas'),wc=world.getContext('2d',{alpha:false});
-function resize(){const _iw=innerWidth||800,_ih=innerHeight||450,ar=(_ih/_iw)||.5625;let w=Math.max(128,Math.round(640*clamp(settings.res||1,.5,1)/8)*8),h=Math.round(w*ar)||Math.round(w*.5625);if(h>800){h=800;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}if(h<120){h=120;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}W=w;H=clamp(h,120,800);canvas.width=world.width=W;canvas.height=world.height=H;frame=wc.createImageData(W,H);px=frame.data;zBuffer=new Float32Array(W);ctx.imageSmoothingEnabled=false;wc.imageSmoothingEnabled=false;}
-addEventListener('resize',resize);resize();
+// Use the visible viewport, including mobile browser chrome and rotation.
+const gameViewport={width:0,height:0,left:0,top:0};
+let viewportFrame=0;
+function resize(){
+ const view=window.visualViewport;
+ const width=Math.max(1,Math.round(view?.width||innerWidth||800));
+ const height=Math.max(1,Math.round(view?.height||innerHeight||450));
+ Object.assign(gameViewport,{width,height,left:view?.offsetLeft||0,top:view?.offsetTop||0});
+ const style=document.documentElement.style;
+ for(const [key,value] of Object.entries(gameViewport))style.setProperty('--game-'+key,value+'px');
+ document.body.classList.toggle('mobile-portrait',coarse&&height>width);
+ const ar=height/width;
+ let w=Math.max(128,Math.round(640*clamp(settings.res||1,.5,1)/8)*8),h=Math.round(w*ar);
+ if(h>800){h=800;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}
+ if(h<120){h=120;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}
+ h=clamp(h,120,800);
+ if(W===w&&H===h&&frame)return;
+ W=w;H=h;canvas.width=world.width=W;canvas.height=world.height=H;
+ frame=wc.createImageData(W,H);px=frame.data;zBuffer=new Float32Array(W);
+ ctx.imageSmoothingEnabled=false;wc.imageSmoothingEnabled=false;
+}
+function queueViewportResize(){
+ if(viewportFrame)return;
+ viewportFrame=requestAnimationFrame(()=>{viewportFrame=0;resize();});
+}
+addEventListener('resize',queueViewportResize);
+window.visualViewport?.addEventListener('resize',queueViewportResize);
+window.visualViewport?.addEventListener('scroll',queueViewportResize);
+function mobileOrientationChange(){
+ releaseInputs();if(coarse&&mode==='playing')pauseGame();queueViewportResize();
+}
+if(screen.orientation?.addEventListener)screen.orientation.addEventListener('change',mobileOrientationChange);
+else addEventListener('orientationchange',mobileOrientationChange);
+resize();
 let mode='menu',difficulty=1,stage=0,gameTime=0,stageTime=0,kills=0,stageKills=0,score=0,combo=0,comboT=0,maxCombo=0,grace=5,cleared=false;
 let map=[],MW=64,MH=64,flow=[],flowClock=0,enemies=[],bullets=[],particles=[],rings=[],drops=[],decals=[],tracers=[],numbers=[],exit={x:20.5,y:22.5};
 let weapon=0,shotCD=0,reloadT=0,reloadDuration=0,recoil=0,muzzle=0,shake=0,hurt=0,hitstop=0,hitmarker=0,killmarker=0,whiteFlash=0,dashT=0,dashCD=0,meleeT=0,meleeCD=0,weaponDrop=0;

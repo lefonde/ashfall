@@ -1,5 +1,5 @@
 'use strict';
-const BUILD={"id":"BETA-0.2.0","version":"0.2.0","channel":"friends-beta","title":"Friends Beta","release_date":"2026-09-12","parent":"ashfall-beta-0.1.8-warden-motion.html","parent_sha256":"451287a1d9af92a15717fb144718700e3bc1febb6c809a6dfb63010ec1272db9","status":"Ready for beta feedback","distribution":"github-pages","standalone_sha256":"c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b","source_digest":"cd7c54ec6ff2"};
+const BUILD={"id":"BETA-0.2.1","version":"0.2.1","channel":"friends-beta","title":"Mobile Controls & HUD","release_date":"2026-09-13","parent":"ashfall-web-beta-0.2.0.zip","status":"Ready for mobile playtest","distribution":"github-pages","baseline_standalone_sha256":"c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b","source_digest":"61be42bdcfdc"};
 const ASSETS={"monsters":"assets/images/monsters-7a8d8ffd4fae.png","weapons":"assets/images/weapons-73583938e547.png","environment":"assets/images/environment-3322ada17e47.png","corruption":"assets/images/corruption-e84fc5cb4a50.png","heart":"assets/images/heart-5692eece590a.png","heartDead":"assets/images/heartDead-7f529971b65b.png","exteriorSky":"assets/images/exteriorSky-6693e4a4d332.webp","exteriorMaterials":"assets/images/exteriorMaterials-e843987123e0.webp","exteriorFacade":"assets/images/exteriorFacade-3a67568a2001.webp","groundsTextures":"assets/images/groundsTextures-f1efbe29ae5c.webp","groundsSprites":"assets/images/groundsSprites-bd069fa07efd.webp","distantCity":"assets/images/distantCity-89b2d4b4bada.webp","ambulance":"assets/images/ambulance-47ad2f81dfb6.webp","recovery":"assets/images/recovery-c727d44ad39a.webp","seraphim":"assets/images/seraphim-f9d62263f225.webp","cerberusBody":"assets/images/cerberusBody-09c649a96f23.webp","cerberusHeads":"assets/images/cerberusHeads-acebff74aa17.webp","parking":"assets/images/parking-07caf158b197.webp"};
 const AUDIO_DATA={"fx":"assets/audio/fx-7b8598627e4a.mp3","music":"assets/audio/music-49c4af6ac5c0.mp3"};
 const NIGHT_AUDIO_DATA={"insects":"assets/audio/night-insects-e61571f673e6.mp3","owl":"assets/audio/night-owl-e261b3affa75.mp3"};
@@ -37,10 +37,43 @@ try{const saved=JSON.parse(localStorage.getItem('ashfall-settings-v2')||'{}');if
  for(const key of ['reduce','map','mute'])if(typeof saved[key]==='boolean')settings[key]=saved[key];
 }}catch{}
 let best=0;try{best=Math.max(0,Number(localStorage.getItem('ashfall-best-v2'))||0);if(!Number.isFinite(best))best=0;}catch{}
-const coarse=matchMedia('(pointer: coarse)').matches;
+let coarse=matchMedia('(pointer: coarse)').matches;
+document.body.classList.toggle('touch-device',coarse);
 let W=640,H=360,frame,px,zBuffer;const world=document.createElement('canvas'),wc=world.getContext('2d',{alpha:false});
-function resize(){const _iw=innerWidth||800,_ih=innerHeight||450,ar=(_ih/_iw)||.5625;let w=Math.max(128,Math.round(640*clamp(settings.res||1,.5,1)/8)*8),h=Math.round(w*ar)||Math.round(w*.5625);if(h>800){h=800;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}if(h<120){h=120;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}W=w;H=clamp(h,120,800);canvas.width=world.width=W;canvas.height=world.height=H;frame=wc.createImageData(W,H);px=frame.data;zBuffer=new Float32Array(W);ctx.imageSmoothingEnabled=false;wc.imageSmoothingEnabled=false;}
-addEventListener('resize',resize);resize();
+// Use the visible viewport, including mobile browser chrome and rotation.
+const gameViewport={width:0,height:0,left:0,top:0};
+let viewportFrame=0;
+function resize(){
+ const view=window.visualViewport;
+ const width=Math.max(1,Math.round(view?.width||innerWidth||800));
+ const height=Math.max(1,Math.round(view?.height||innerHeight||450));
+ Object.assign(gameViewport,{width,height,left:view?.offsetLeft||0,top:view?.offsetTop||0});
+ const style=document.documentElement.style;
+ for(const [key,value] of Object.entries(gameViewport))style.setProperty('--game-'+key,value+'px');
+ document.body.classList.toggle('mobile-portrait',coarse&&height>width);
+ const ar=height/width;
+ let w=Math.max(128,Math.round(640*clamp(settings.res||1,.5,1)/8)*8),h=Math.round(w*ar);
+ if(h>800){h=800;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}
+ if(h<120){h=120;w=Math.max(128,Math.round(h/ar/8)*8);h=Math.round(w*ar);}
+ h=clamp(h,120,800);
+ if(W===w&&H===h&&frame)return;
+ W=w;H=h;canvas.width=world.width=W;canvas.height=world.height=H;
+ frame=wc.createImageData(W,H);px=frame.data;zBuffer=new Float32Array(W);
+ ctx.imageSmoothingEnabled=false;wc.imageSmoothingEnabled=false;
+}
+function queueViewportResize(){
+ if(viewportFrame)return;
+ viewportFrame=requestAnimationFrame(()=>{viewportFrame=0;resize();});
+}
+addEventListener('resize',queueViewportResize);
+window.visualViewport?.addEventListener('resize',queueViewportResize);
+window.visualViewport?.addEventListener('scroll',queueViewportResize);
+function mobileOrientationChange(){
+ releaseInputs();if(coarse&&mode==='playing')pauseGame();queueViewportResize();
+}
+if(screen.orientation?.addEventListener)screen.orientation.addEventListener('change',mobileOrientationChange);
+else addEventListener('orientationchange',mobileOrientationChange);
+resize();
 let mode='menu',difficulty=1,stage=0,gameTime=0,stageTime=0,kills=0,stageKills=0,score=0,combo=0,comboT=0,maxCombo=0,grace=5,cleared=false;
 let map=[],MW=64,MH=64,flow=[],flowClock=0,enemies=[],bullets=[],particles=[],rings=[],drops=[],decals=[],tracers=[],numbers=[],exit={x:20.5,y:22.5};
 let weapon=0,shotCD=0,reloadT=0,reloadDuration=0,recoil=0,muzzle=0,shake=0,hurt=0,hitstop=0,hitmarker=0,killmarker=0,whiteFlash=0,dashT=0,dashCD=0,meleeT=0,meleeCD=0,weaponDrop=0;
@@ -99,7 +132,7 @@ function buildFlow(){flow=new Int16Array(MW*MH).fill(-1);const q=new Int16Array(
 function startRun(){applyDifficulty();useChapter=true;review.active=false;document.body.classList.remove('testing');$('reviewBar').classList.add('hidden');$('reviewPanelBtn').classList.add('hidden');$('scoreLabel').textContent='SCORE';$('restartBtn').textContent='RESTART RUN';$('retryBtn').textContent='ONE MORE RUN';audio.reset();Object.assign(mods,{damage:1,speed:1,life:1,reload:1,dash:1});for(const g of guns){g.ammo=g.mag;g.reserve=Math.min(g.maxReserve,g.mag*8);}gameTime=score=kills=combo=maxCombo=comboT=0;weapon=0;loadStage(0);hideOverlays();mode='playing';$('hud').classList.remove('hidden');$('touch').classList.remove('hidden');document.body.classList.add('playing');audio.start();if(review.active)reviewHud();lockPointer();}
 function hideOverlays(){for(const id of['start','pause','settings','upgrade','end','testWard','mapPanel'])$(id).classList.add('hidden');}
 function lockPointer(){canvas.focus?.({preventScroll:true});if(!coarse&&canvas.requestPointerLock){try{const promise=canvas.requestPointerLock();if(promise?.catch)promise.catch(()=>feed('MOUSE CAPTURE UNAVAILABLE\nDRAG TO AIM / ARROWS TO TURN'));}catch{feed('DRAG TO AIM / ARROWS TO TURN');}}}
-function releaseInputs(){mouseFire=false;s4tReleaseTrigger();for(const k in keys)delete keys[k];touchMove.x=touchMove.y=0;lookDelta=0;mapHeld=false;touchLook.id=null;stickId=null;$('stickKnob').style.transform='';}
+function releaseInputs(){mouseFire=false;s4tReleaseTrigger();for(const k in keys)delete keys[k];touchMove.x=touchMove.y=0;lookDelta=0;mapHeld=false;touchLook.id=null;stickId=null;touchFireId=null;touchFireLook=null;$('stickKnob').style.transform='';for(const el of document.querySelectorAll('#touch .is-pressed'))el.classList.remove('is-pressed');}
 function pauseGame(){if(mode!=='playing')return;mode='paused';releaseInputs();hideOverlays();$('pause').classList.remove('hidden');$('touch').classList.add('hidden');document.body.classList.remove('playing');document.exitPointerLock?.();audio.pause();}
 function resumeGame(){hideOverlays();mode='playing';$('touch').classList.remove('hidden');document.body.classList.add('playing');audio.start();lockPointer();}
 function finish(won,reason){if(mode!=='playing')return;mode=won?'won':'dead';releaseInputs();document.exitPointerLock?.();document.body.classList.remove('playing');$('touch').classList.add('hidden');hideOverlays();$('end').classList.remove('hidden');$('endLabel').textContent=won?'THREE SEALS / ONE SURVIVOR':'SIGNAL LOST';$('endTitle').textContent=won?'DISCHARGED.':'BACK TO ASH.';$('endReason').textContent=won?'The ward is quiet. For now.':reason;$('endScore').textContent=Math.round(score).toLocaleString();$('endKills').textContent=kills;$('endTime').textContent=formatTime(gameTime);$('endCombo').textContent=maxCombo+'×';if(!review.active&&score>best){best=Math.round(score);try{localStorage.setItem('ashfall-best-v2',best);}catch{}}if(review.active){$('endLabel').textContent='TEST WARD / '+BUILD.id;$('endTitle').textContent=won?'SCENE COMPLETE.':'TEST ENDED.';$('endReason').textContent=won?'Exit reached. Reset this scene or return to Test Ward.':'Retry this scene, or use Test Ward to change the conditions.';}$('retryBtn').textContent=review.active?'RETRY TEST SCENE':won?'NEW RUN':'RETRY CHECKPOINT';audio.end(won);}
@@ -360,6 +393,14 @@ function renderProp(p){meshFaces=[];const box=(...args)=>{if(p.horrorSkin&&args[
  }else if(p.kind==='arch'){
  for(const xx of[-.96,.96]){box(xx,0,0,.08,.19,1.13,'#406061',2);box(xx,-.102,.12,.022,.014,.83,'#526d69');}
  box(0,0,1.025,2.01,.23,.16,'#2c4b47',2);box(0,-.122,1.015,1.82,.022,.02,'#6cd8c7');
+ if(p.wfExit&&wfExitReady(p)){
+  // Constant emergency trim: readable from either approach, no flashing or
+  // screen-space marker competing with the aiming area.
+  for(const side of [-1,1]){
+   for(const xx of [-.96,.96])quad([[xx-.018,side*.124,.16],[xx+.018,side*.124,.16],[xx+.018,side*.124,.98],[xx-.018,side*.124,.98]],'#9ce2bf',-1,true);
+   quad([[-.9,side*.125,1.01],[.9,side*.125,1.01],[.9,side*.125,1.035],[-.9,side*.125,1.035]],'#9ce2bf',-1,true);
+  }
+ }
  }else if(p.kind==='lamp'){
  box(0,0,1.13,1.25,.24,.045,'#464b45',1);quad([[-.55,-.08,1.125],[.55,-.08,1.125],[.55,.08,1.125],[-.55,.08,1.125]],p.color,-1,true);for(const xx of[-.43,.43])box(xx,0,1.175,.018,.018,.025,'#374239');
  }else if(p.kind==='pipe'){
@@ -409,7 +450,7 @@ function renderWorldObjects(){for(const d of decals){const v=project(d.x,d.y,.01
  for(const q of tracers){const v=project(q.x,q.y,q.z);if(!v)continue;wc.strokeStyle=q.color;wc.globalAlpha=q.life/.1;wc.lineWidth=1;wc.beginPath();wc.moveTo(W*.5+12,H*.74);wc.lineTo(v.x,v.y);wc.stroke();}wc.globalAlpha=1;
  for(const n of numbers){const v=project(n.x,n.y,n.z);if(!v||zBuffer[clamp(v.x|0,0,W-1)]<v.d-.2)continue;wc.globalAlpha=n.life/.75;wc.font='bold 12px monospace';wc.fillStyle=n.color;wc.textAlign='center';wc.fillText(n.text,v.x,v.y);}wc.globalAlpha=1;
 }
-function renderGun(){if(!artReady)return;if(weapon===3){s4tRenderHands();return;}const g=guns[weapon],art=gunSprites[weapon],motion=settings.reduce?0:Math.min(1,Math.hypot(player.vx,player.vy)/4.65),reloadDip=reloadT>0?Math.sin(Math.PI*clamp(1-reloadT/reloadDuration,0,1)):0;const gh=Math.min(H*(weapon===2?.68:.64),cbRunning()&&H>W?H*.46:Infinity),gw=gh*art.aspect,gx=W*.5+(settings.reduce?0:Math.sin(bob)*3*motion-sway*9),gy=H+gh*.13+Math.abs(Math.cos(bob))*motion*3+recoil*(weapon===1?8:22)+reloadDip*gh*.65+weaponDrop*gh*2+s4dGunDip()*gh;
+function renderGun(){if(!artReady)return;if(weapon===3){s4tRenderHands();return;}const g=guns[weapon],art=gunSprites[weapon],motion=settings.reduce?0:Math.min(1,Math.hypot(player.vx,player.vy)/4.65),reloadDip=reloadT>0?Math.sin(Math.PI*clamp(1-reloadT/reloadDuration,0,1)):0;const gh=Math.min(H*(weapon===2?.68:.64),coarse?Math.min(H*.5,W*.76/art.aspect):Infinity,cbRunning()&&H>W?H*.46:Infinity),gw=gh*art.aspect,gx=W*.5+(settings.reduce?0:Math.sin(bob)*3*motion-sway*9),gy=H+gh*.13+Math.abs(Math.cos(bob))*motion*3+recoil*(weapon===1?8:22)+reloadDip*gh*.65+weaponDrop*gh*2+s4dGunDip()*gh;
  wc.save();wc.translate(gx,gy);wc.rotate((settings.reduce?0:sway*.027+Math.sin(bob)*motion*.008)+reloadDip*.25-recoil*(weapon===1?.012:.033));wc.drawImage(art.image,-gw/2,-gh,gw,gh);wc.restore();
  if(muzzle>0){const x=gx,y=gy-gh+gh*.075,r=weapon===1?17:weapon===0?42:51;drawGlow(x,y,r,g.color,.9);wc.save();wc.globalCompositeOperation='lighter';wc.strokeStyle=g.color;wc.fillStyle='#fffbd5';wc.lineWidth=3;wc.beginPath();for(let i=0;i<12;i++){const a=i/12*TAU+nowTime*7,rad=i%2?r*.25:r*(.7+Math.random()*.3);const xx=x+Math.cos(a)*rad,yy=y+Math.sin(a)*rad*(weapon===1?.7:1);if(i===0)wc.moveTo(xx,yy);else wc.lineTo(xx,yy);}wc.closePath();wc.fill();wc.stroke();wc.restore();}
  if(reloadT>0){wc.textAlign='center';wc.font='bold 10px monospace';wc.fillStyle=g.color;wc.fillText('RELOADING',W/2,H*.76);wc.fillStyle='#130820';wc.fillRect(W/2-35,H*.78,70,3);wc.fillStyle=g.color;wc.fillRect(W/2-35,H*.78,70*(1-reloadT/reloadDuration),3);}
@@ -421,10 +462,74 @@ function renderMap(){wfRenderCorner();}
 function render(){worldRender();renderWorldObjects();if(s4Running()){s4DrawLabels();s4dDrawSmoke();s4qAtmosphere();s4tAtmosphere();cbAtmosphere();hgStormDraw();}s4dThreshold();hbRenderBirths();hbRenderAttack();if(mode!=='menu')renderGun();if(mode==='playing'&&!s4dLocked())renderCrosshair();s4dScreen();if(liminal.dark>0){wc.fillStyle='rgba(4,3,6,'+clamp(liminal.dark,0,1)+')';wc.fillRect(0,0,W,H);}ctx.fillStyle='#100717';ctx.fillRect(0,0,W,H);const kick=settings.reduce?0:shake*settings.shake,sx=rand(-kick,kick),sy=rand(-kick,kick);ctx.drawImage(world,sx,sy);
  if(mode==='playing'&&!settings.reduce&&(dashT>0||muzzle>.08)){ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=dashT>0?.1:.075;ctx.drawImage(world,sx+4,sy-1);ctx.restore();}
  if(mode==='playing'){if(hurt>0){ctx.fillStyle='rgba(255,20,103,'+Math.min(settings.reduce?.12:.3,hurt*.65)+')';ctx.fillRect(0,0,W,H);}if(whiteFlash>0&&!settings.reduce){ctx.fillStyle='rgba(218,255,115,'+whiteFlash*2+')';ctx.fillRect(0,0,W,H);}if(player.hp<25){ctx.strokeStyle='#ff327c';ctx.globalAlpha=.45+.2*Math.sin(nowTime*9);ctx.lineWidth=6;ctx.strokeRect(0,0,W,H);ctx.globalAlpha=1;}if(dashT>0&&!settings.reduce){ctx.strokeStyle='#54efff77';ctx.lineWidth=1;for(let i=0;i<14;i++){const a=i/14*TAU;ctx.beginPath();ctx.moveTo(W/2+Math.cos(a)*W*.35,H/2+Math.sin(a)*H*.35);ctx.lineTo(W/2+Math.cos(a)*W*.7,H/2+Math.sin(a)*H*.7);ctx.stroke();}}}renderMap();}
-
 // SOURCE: ui.js
 // ui.js — bundled from the owner’s liminal baseline.
-function hudUpdate(){const g=equippedItem();$('wardName').innerHTML=hwRunning()?'03 <b>THE HEART WARD</b>':fvRunning()?'02 <b>FEVER THEATRE</b>':chRunning()?'01 <b>ADMISSIONS</b>':'0'+(stage+1)+' <b>'+wardNames[stage]+'</b>';$('goal').textContent=hwRunning()?HW.objective:fvRunning()?FV.objective:chRunning()?CH.objective:(cleared?'SEAL BROKEN · REACH THE EXIT':'BREAK THE SEAL · '+Math.min(stageKills,quotas[stage])+' / '+quotas[stage]);$('life').textContent=Math.ceil(player.hp);$('lifeFill').style.width=clamp(player.hp,0,100)+'%';$('lifeHint').textContent=liminal.mix>.4?'':player.hp<25?'SIGNAL CRITICAL':'KILL TO RESTORE';$('life').style.color=player.hp<25?'#ff327c':'#f3f1cf';$('score').textContent=Math.round(score).toString().padStart(6,'0');$('time').textContent=formatTime(gameTime)+'.'+Math.floor(gameTime%1*100).toString().padStart(2,'0');$('ammo').textContent=reloadT>0?'—':g.ammo;$('reserve').textContent='/ '+g.reserve;$('weaponName').textContent=g.name;$('weaponName').style.color=g.color;for(let i=0;i<3;i++)$('slot'+i).classList.toggle('active',i===weapon);$('dashLabel').textContent=dashCD>0?'DASH '+dashCD.toFixed(1)+'s':'[SPACE] DASH READY';const _hv=1-clamp(liminal.mix*1.35,0,1);$('comboWrap').style.opacity=combo>1?_hv:0;$('combo').textContent=combo+'×';$('comboText').textContent=combo>=10?'CATASTROPHIC':combo>=6?'UNSTOPPABLE':'KEEP FEEDING';$('comboTrack').style.width=(comboT/3.4*100)+'%';$('message').style.opacity=clamp(msgT*3,0,1)*_hv;$('feed').style.opacity=clamp(feedT*2,0,1)*_hv;let target=exit,ctext=cleared?'EXIT':'HUNT';if(hwRunning()){target=HW.resolved?exit:{x:32.5,y:11.5};ctext=HW.resolved?'EXIT':'HEART';}else if(fvRunning()){target=fvCompassTarget();ctext=FV.closed>=3?'AIRLOCK':target.id;}else if(chRunning()){target=CH.power?exit:CH_GOAL;ctext=CH.power?'EXIT':'PLANT';}else if(!cleared){let d=Infinity;for(const e of enemies){if(!e.alive)continue;const dd=Math.hypot(e.x-player.x,e.y-player.y);if(dd<d){d=dd;target=e;}}}const a=angle(Math.atan2(target.y-player.y,target.x-player.x)-player.a);$('compassArrow').style.transform='rotate('+a+'rad)';$('compassText').textContent=ctext;if(review.active)reviewHud();fvHud();hbHud();if(s4Running())s4Hud();s4dHud();s4tHud();cbHud();wfHud();}
+let hudComposing=false;
+// All chapter writers run synchronously inside one final HUD composition.
+function hudUpdate(){
+ if(hudComposing)return;
+ hudComposing=true;
+ try{
+  const g=equippedItem();
+  $('wardName').innerHTML=hwRunning()?'03 <b>THE HEART WARD</b>':fvRunning()?'02 <b>FEVER THEATRE</b>':chRunning()?'01 <b>ADMISSIONS</b>':'0'+(stage+1)+' <b>'+wardNames[stage]+'</b>';
+  $('goal').textContent=hwRunning()?HW.objective:fvRunning()?FV.objective:chRunning()?CH.objective:(cleared?'SEAL BROKEN · REACH THE EXIT':'BREAK THE SEAL · '+Math.min(stageKills,quotas[stage])+' / '+quotas[stage]);
+  $('life').textContent=Math.ceil(player.hp);$('lifeFill').style.width=clamp(player.hp,0,100)+'%';
+  $('lifeHint').textContent=liminal.mix>.4?'':player.hp<25?'SIGNAL CRITICAL':'KILL TO RESTORE';
+  $('life').style.color=player.hp<25?'#ff327c':'#f3f1cf';
+  $('score').textContent=Math.round(score).toString().padStart(6,'0');
+  $('time').textContent=formatTime(gameTime)+'.'+Math.floor(gameTime%1*100).toString().padStart(2,'0');
+  $('ammo').textContent=reloadT>0?'—':g.ammo;$('reserve').textContent='/ '+g.reserve;
+  $('weaponName').textContent=g.name;$('weaponName').style.color=g.color;
+  for(let i=0;i<3;i++)$('slot'+i).classList.toggle('active',i===weapon);
+  $('dashLabel').textContent=dashCD>0?'DASH '+dashCD.toFixed(1)+'s':coarse?'DASH READY':'[SPACE] DASH READY';
+  const visible=1-clamp(liminal.mix*1.35,0,1);
+  $('comboWrap').style.opacity=combo>1?visible:0;$('combo').textContent=combo+'×';
+  $('comboText').textContent=combo>=10?'CATASTROPHIC':combo>=6?'UNSTOPPABLE':'KEEP FEEDING';
+  $('comboTrack').style.width=(comboT/3.4*100)+'%';
+  $('message').style.opacity=clamp(msgT*3,0,1)*visible;$('feed').style.opacity=clamp(feedT*2,0,1)*visible;
+  // Narrative priority is deliberate: boss/finale guidance supersedes the old quest.
+  if(review.active)reviewHud();
+  fvHud();if(!cbRunning())hbHud();
+  if(s4Running())s4Hud();
+  s4dHud();s4tHud();cbHud();
+  // Route selection owns navigation; the actual E/USE target owns the prompt.
+  wfHud();hudInteractionHud();
+ }finally{hudComposing=false;}
+}
+
+// The prompt follows the same priority and reach checks as the USE/E handlers.
+function hudExitNear(){
+ return mode==='playing'&&!s4Running()&&cleared&&!s4dLocked()&&!wfUncharted()&&
+  !fvNearestUse()&&!wfBreakerNear()&&Math.hypot(player.x-exit.x,player.y-exit.y)<1.5;
+}
+function hudExteriorInteraction(){
+ if(mode!=='playing'||!s4Running()||s4dLocked())return null;
+ if(s4tNear())return {action:'LIFT THE WOUNDED SERAPHIM',touch:'LIFT',hint:coarse?'FIRE to throw · GUN to switch weapons.':'FIRE to throw · 1–3 for guns · 4 to hold it again.',color:'#efdb9e'};
+ const q=s4qNearby();
+ if(q){
+  const hints={keys:'Spare keys for the ambulance.',ext:'Use it on the ambulance engine fire.',gate:'Opens the shortcut between parking and the bus road.',supply:'One use: first aid and ammunition.',
+   wreck:S4Q.fire?(S4Q.ext?'Put out the engine fire, then use the spare keys.':'Find the extinguisher at the bus shelter.'):(S4Q.keys?'Clear nearby threats, then move the ambulance.':'Find the spare keys in Staff Car 04.')};
+  return {action:q.label,touch:q.touch,hint:hints[q.kind]||'',color:'#b0e7d8'};
+ }
+ if(s4dWreckNear())return {action:'EXAMINE AMBULANCE',touch:'EXAMINE',hint:'The burning wreck blocks the garden path.',color:'#e4bc91'};
+ const sign=s4NearbyLabel();
+ return sign?{action:sign.interact,touch:'READ',hint:'Read the sign.',color:'#b0e7d8'}:null;
+}
+function hudInteractionHud(){
+ if(mode!=='playing'||s4dLocked()||wfUncharted()){
+  $('interactPrompt').classList.add('hidden');$('touchUse').classList.add('hidden');return;
+ }
+ let target=null;
+ if(s4Running())target=hudExteriorInteraction();
+ else if(hudExitNear())target={action:chRunning()?'LEAVE THROUGH SECURITY EXIT':fvRunning()?'ENTER THE AIRLOCK EXIT':'LEAVE THROUGH THE EXIT',touch:'EXIT',hint:'Continue through the open exit.',color:'#d5ff9e'};
+ else return; // Admissions and theatre controls were already composed above.
+ $('interactPrompt').classList.toggle('hidden',!target);$('touchUse').classList.toggle('hidden',!target);
+ if(!target)return;
+ $('interactAction').textContent=(coarse?'USE · ':'[E] ')+target.action;
+ $('interactHint').textContent=target.hint;$('interactPrompt').style.borderColor=target.color;
+ touchSetLabel('touchUse',target.touch);
+}
+
 function saveSettings(){try{localStorage.setItem('ashfall-settings-v2',JSON.stringify(settings));}catch{}audio.levels();document.body.classList.toggle('lowfx',settings.reduce);}
 function syncSettings(){ $('musicVol').value=settings.music*100;$('sfxVol').value=settings.sfx*100;$('sensitivity').value=settings.sensitivity/.00003;$('shakeAmount').value=settings.shake*100;$('renderRes').value=Math.round((settings.res||1)*100);$('difficulty').value=String(clamp(Math.round(settings.difficulty),0,2)|0);applyDifficulty();$('reduceFx').checked=settings.reduce;$('showMap').checked=settings.map;$('muteAll').checked=settings.mute;document.body.classList.toggle('lowfx',settings.reduce);}
 function openSettings(parent){menuParent=parent;hideOverlays();$('settings').classList.remove('hidden');mode='settings';syncSettings();}
@@ -432,28 +537,115 @@ function closeSettings(){saveSettings();hideOverlays();if(menuParent==='review')
 $('musicVol').oninput=e=>{settings.music=+e.target.value/100;audio.levels();};$('sfxVol').oninput=e=>{settings.sfx=+e.target.value/100;audio.levels();};$('sensitivity').oninput=e=>settings.sensitivity=+e.target.value*.00003;$('shakeAmount').oninput=e=>settings.shake=+e.target.value/100;$('renderRes').oninput=e=>{settings.res=+e.target.value/100;resize();};$('difficulty').onchange=e=>{settings.difficulty=+e.target.value;applyDifficulty();saveSettings();};$('reduceFx').onchange=e=>{settings.reduce=e.target.checked;document.body.classList.toggle('lowfx',settings.reduce);};$('showMap').onchange=e=>settings.map=e.target.checked;$('muteAll').onchange=e=>{settings.mute=e.target.checked;audio.levels();};
 $('startBtn').onclick=()=>{if(artReady)startRun();};$('resumeBtn').onclick=resumeGame;$('retryBtn').onclick=()=>{if(!review.active){if(HW.on&&HW.checkpoint){hwRestore();return;}if(FV.on&&FV.checkpoint){fvRestore();return;}if(CH.checkpoint){chRestore();return;}}startRun();};$('restartBtn').onclick=startRun;$('startSettings').onclick=()=>openSettings('menu');$('pauseSettings').onclick=()=>openSettings('paused');$('settingsBack').onclick=closeSettings;$('menuBtn').onclick=()=>{mode='menu';hideOverlays();$('start').classList.remove('hidden');$('hud').classList.add('hidden');$('touch').classList.add('hidden');$('bestText').textContent=best?'PERSONAL BEST / '+best.toLocaleString():'';audio.pause();loadStage(0);};
 for(const b of document.querySelectorAll('[data-mode]'))b.onclick=()=>{settings.difficulty=+b.dataset.mode;applyDifficulty();saveSettings();};
-addEventListener('keydown',e=>{if(!(['INPUT','SELECT','TEXTAREA'].includes(e.target?.tagName)||e.target?.isContentEditable)&&wfMapKey(e))return;if(e.code!=='Escape'&&(['INPUT','SELECT','TEXTAREA'].includes(e.target?.tagName)||e.target?.isContentEditable||(mode!=='playing'&&['BUTTON','SUMMARY'].includes(e.target?.tagName))))return;if(mode==='playing'&&['Space','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='Escape'){if(mode==='playing')pauseGame();else if(mode==='paused')resumeGame();else if(mode==='settings')closeSettings();else if(mode==='review')closeTestWard();return;}if(e.code==='KeyU'&&!e.repeat){settings.mute=!settings.mute;$('muteAll').checked=settings.mute;saveSettings();return;}if(mode==='menu'&&e.code==='Enter'&&artReady){startRun();return;}if(mode!=='playing')return;if(review.active&&!e.repeat){if(e.code==='KeyT'){openTestWard();return;}if(e.code==='KeyB'){reviewReset();return;}if(e.code==='KeyH'){reviewDamagePreview();return;}if(e.code==='KeyN'){reviewRepeatTargets();return;}}if(s4dLocked()){if(e.code==='Enter'){e.preventDefault();s4dSkip();}return;}keys[e.code]=true;if(e.repeat)return;if(e.code==='Digit1')changeWeapon(0);if(e.code==='Digit2')changeWeapon(1);if(e.code==='Digit3')changeWeapon(2);if(e.code==='Digit4')s4tEquip();if(e.code==='KeyR')reload();if(e.code==='KeyQ')melee();if(e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight')dash();if(e.code==='Tab')mapHeld=true;if(e.code==='KeyE'){e.preventDefault();if(s4Interact()||fvInteract()||chInteract())return;if(cleared&&Math.hypot(player.x-exit.x,player.y-exit.y)<1.5)completeWard();}});
+addEventListener('keydown',e=>{if(!(['INPUT','SELECT','TEXTAREA'].includes(e.target?.tagName)||e.target?.isContentEditable)&&wfMapKey(e))return;if(e.code!=='Escape'&&(['INPUT','SELECT','TEXTAREA'].includes(e.target?.tagName)||e.target?.isContentEditable||(mode!=='playing'&&['BUTTON','SUMMARY'].includes(e.target?.tagName))))return;if(mode==='playing'&&['Space','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='Escape'){if(mode==='playing')pauseGame();else if(mode==='paused')resumeGame();else if(mode==='settings')closeSettings();else if(mode==='review')closeTestWard();return;}if(e.code==='KeyU'&&!e.repeat){settings.mute=!settings.mute;$('muteAll').checked=settings.mute;saveSettings();return;}if(mode==='menu'&&e.code==='Enter'&&artReady){startRun();return;}if(mode!=='playing')return;if(review.active&&!e.repeat){if(e.code==='KeyT'){openTestWard();return;}if(e.code==='KeyB'){reviewReset();return;}if(e.code==='KeyH'){reviewDamagePreview();return;}if(e.code==='KeyN'){reviewRepeatTargets();return;}}if(s4dLocked()){if(e.code==='Enter'){e.preventDefault();s4dSkip();}return;}keys[e.code]=true;if(e.repeat)return;if(e.code==='Digit1')changeWeapon(0);if(e.code==='Digit2')changeWeapon(1);if(e.code==='Digit3')changeWeapon(2);if(e.code==='Digit4')s4tEquip();if(e.code==='KeyR')reload();if(e.code==='KeyQ')melee();if(e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight')dash();if(e.code==='Tab')mapHeld=true;if(e.code==='KeyE'){e.preventDefault();if(s4Interact()||fvInteract()||chInteract())return;if(hudExitNear())completeWard();}});
 
 
 // SOURCE: input.js
-// input.js — bundled from the owner’s liminal baseline.
+// Pointer ownership keeps move, aim and fire independent during multitouch.
+function touchSetLabel(id,text){
+ const el=$(id);if(!el)return;
+ const label=el.querySelector('.touchLabel')||el;
+ if(label.textContent!==text)label.textContent=text;
+}
+function touchCapture(el,id){try{el.setPointerCapture(id);}catch{}}
+function touchDevice(e){
+ if(e.pointerType==='touch'&&!coarse){coarse=true;document.body.classList.add('touch-device');queueViewportResize();}
+}
+function touchAim(dx,dy){
+ // Same sensitivity slider on mouse and touch; normalize across screen sizes.
+ const scale=clamp(844/(gameViewport.width||innerWidth||844),.65,1.4);
+ player.a+=dx*settings.sensitivity*2.65*scale;lookDelta+=dx;
+ if(!settings.reduce)aimPitch=clamp(aimPitch-dy*.12,-H*.08,H*.08);
+}
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyF')s4tReleaseTrigger();if(e.code==='Tab')mapHeld=false;});
 let hadLock=false;
 document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===canvas;if(hadLock&&!locked&&mode==='playing')pauseGame();hadLock=locked;});
 addEventListener('mousemove',e=>{if(mode!=='playing'||coarse||s4dLocked())return;if(document.pointerLockElement===canvas||mouseFire){player.a+=e.movementX*settings.sensitivity;lookDelta+=e.movementX;if(!settings.reduce)aimPitch=clamp(aimPitch-e.movementY*.09,-H*.1,H*.1);}});
 canvas.addEventListener('mousedown',e=>{if(mode!=='playing'||coarse||s4dLocked())return;if(e.button===0){mouseFire=true;shoot();if(document.pointerLockElement!==canvas)lockPointer();}if(e.button===2){e.preventDefault();melee();}});
-addEventListener('mouseup',e=>{if(e.button===0){mouseFire=false;s4tReleaseTrigger();}});canvas.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('mouseup',e=>{if(e.button===0&&touchFireId===null){mouseFire=false;s4tReleaseTrigger();}});
 addEventListener('wheel',e=>{if(mode!=='playing')return;e.preventDefault();changeWeapon(weapon+(e.deltaY>0?1:-1));},{passive:false});
-addEventListener('blur',()=>{releaseInputs();if(mode==='playing')pauseGame();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&mode==='playing')pauseGame();});
-const stick=$('stick');let stickId=null;
-stick.addEventListener('pointerdown',e=>{if(mode!=='playing')return;stickId=e.pointerId;stick.setPointerCapture(e.pointerId);handleStick(e);});
-function handleStick(e){if(e.pointerId!==stickId||s4dLocked())return;const r=stick.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2,l=Math.max(42,Math.hypot(x,y));touchMove.x=x/l;touchMove.y=y/l;$('stickKnob').style.transform='translate('+touchMove.x*36+'px,'+touchMove.y*36+'px)';}
-stick.addEventListener('pointermove',handleStick);for(const event of['pointerup','pointercancel'])stick.addEventListener(event,e=>{if(e.pointerId===stickId){stickId=null;touchMove.x=touchMove.y=0;$('stickKnob').style.transform='';}});
-canvas.addEventListener('pointerdown',e=>{if(mode!=='playing'||e.pointerType==='mouse'||s4dLocked())return;e.preventDefault();touchLook.id=e.pointerId;touchLook.x=e.clientX;touchLook.y=e.clientY;canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener('pointermove',e=>{if(mode!=='playing'||e.pointerId!==touchLook.id||s4dLocked())return;const dx=e.clientX-touchLook.x,dy=e.clientY-touchLook.y;player.a+=dx*.006;lookDelta+=dx;if(!settings.reduce)aimPitch=clamp(aimPitch-dy*.12,-H*.08,H*.08);touchLook.x=e.clientX;touchLook.y=e.clientY;});for(const event of['pointerup','pointercancel'])canvas.addEventListener(event,e=>{if(touchLook.id===e.pointerId)touchLook.id=null;});
-$('touchFire').addEventListener('pointerdown',e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);if(!s4dLocked()){mouseFire=true;shoot();}});for(const event of['pointerup','pointercancel'])$('touchFire').addEventListener(event,()=>{mouseFire=false;s4tReleaseTrigger();});$('touchDash').onpointerdown=e=>{e.preventDefault();dash();};$('touchGun').onpointerdown=e=>{e.preventDefault();changeWeapon(weapon+1);};$('touchPause').onclick=pauseGame;$('touchUse').onclick=()=>s4Interact()||fvInteract()||chInteract();
-
-
+addEventListener('blur',()=>{releaseInputs();if(mode==='playing')pauseGame();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){releaseInputs();if(mode==='playing')pauseGame();}});
+const stick=$('stick');let stickId=null,touchFireId=null,touchFireLook=null;
+stick.addEventListener('pointerdown',e=>{
+ if(mode!=='playing'||s4dLocked()||stickId!==null)return;
+ e.preventDefault();touchDevice(e);stickId=e.pointerId;touchCapture(stick,e.pointerId);stick.classList.add('is-pressed');handleStick(e);
+});
+function handleStick(e){
+ if(mode!=='playing'||e.pointerId!==stickId||s4dLocked())return;
+ const r=stick.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;
+ const radius=Math.max(20,r.width*.34),distance=Math.hypot(x,y),dead=radius*.1;
+ const strength=clamp((distance-dead)/(radius-dead),0,1);
+ touchMove.x=distance?x/distance*strength:0;touchMove.y=distance?y/distance*strength:0;
+ $('stickKnob').style.transform='translate('+touchMove.x*radius+'px,'+touchMove.y*radius+'px)';
+}
+stick.addEventListener('pointermove',handleStick);
+for(const event of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(event,e=>{
+ if(e.pointerId===stickId){stickId=null;touchMove.x=touchMove.y=0;$('stickKnob').style.transform='';stick.classList.remove('is-pressed');}
+});
+canvas.addEventListener('pointerdown',e=>{
+ if(mode!=='playing'||e.pointerType==='mouse'||s4dLocked()||touchLook.id!==null)return;
+ e.preventDefault();touchDevice(e);touchLook.id=e.pointerId;touchLook.x=e.clientX;touchLook.y=e.clientY;touchCapture(canvas,e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+ if(mode!=='playing'||e.pointerId!==touchLook.id||s4dLocked())return;
+ touchAim(e.clientX-touchLook.x,e.clientY-touchLook.y);touchLook.x=e.clientX;touchLook.y=e.clientY;
+});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,e=>{if(touchLook.id===e.pointerId)touchLook.id=null;});
+const fireButton=$('touchFire');
+fireButton.addEventListener('pointerdown',e=>{
+ if(mode!=='playing'||s4dLocked()||touchFireId!==null)return;
+ e.preventDefault();touchDevice(e);touchFireId=e.pointerId;touchFireLook={x:e.clientX,y:e.clientY};
+ touchCapture(fireButton,e.pointerId);fireButton.classList.add('is-pressed');mouseFire=true;shoot();
+});
+fireButton.addEventListener('pointermove',e=>{
+ if(e.pointerId!==touchFireId||!touchFireLook||mode!=='playing'||s4dLocked())return;
+ if(touchLook.id===null)touchAim(e.clientX-touchFireLook.x,e.clientY-touchFireLook.y);
+ touchFireLook.x=e.clientX;touchFireLook.y=e.clientY;
+});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])fireButton.addEventListener(event,e=>{
+ if(e.pointerId!==touchFireId)return;
+ touchFireId=null;touchFireLook=null;mouseFire=false;s4tReleaseTrigger();fireButton.classList.remove('is-pressed');
+});
+function touchAction(id,action,allowLocked=false){
+ const el=$(id);if(!el)return;
+ el.addEventListener('pointerdown',e=>{
+  if(mode!=='playing'||(!allowLocked&&s4dLocked())||el.disabled)return;
+  e.preventDefault();touchDevice(e);touchCapture(el,e.pointerId);el.classList.add('is-pressed');action();
+ });
+ for(const event of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(event,()=>el.classList.remove('is-pressed'));
+ // Keyboard/screen-reader activation remains usable; suppress synthetic clicks.
+ el.onclick=e=>{if(e.detail===0&&mode==='playing'&&(allowLocked||!s4dLocked())&&!el.disabled)action();};
+}
+touchAction('touchDash',dash);
+touchAction('touchGun',()=>changeWeapon(weapon+1));
+touchAction('touchReload',reload);
+touchAction('touchMelee',melee);
+touchAction('touchUse',()=>{if(s4Interact()||fvInteract()||chInteract())return;if(hudExitNear())completeWard();});
+touchAction('touchMap',()=>wfOpenMap());
+touchAction('touchPause',pauseGame,true);
+function playingSurface(target){
+ return mode==='playing'&&target instanceof Element&&!!target.closest('#game,#touch,#hud');
+}
+// Block page gestures only on the game. Menus, sliders and feedback stay native.
+for(const type of ['contextmenu','selectstart','dragstart'])document.addEventListener(type,e=>{
+ if(playingSurface(e.target))e.preventDefault();
+},{capture:true});
+for(const type of ['touchstart','touchmove','gesturestart','gesturechange','gestureend'])document.addEventListener(type,e=>{
+ if(playingSurface(e.target)&&e.cancelable)e.preventDefault();
+},{capture:true,passive:false});
+const fullscreenButton=$('touchFullscreen');
+if(fullscreenButton&&document.documentElement.requestFullscreen&&document.fullscreenEnabled){
+ fullscreenButton.hidden=false;fullscreenButton.classList.remove('hidden');
+ fullscreenButton.onclick=async()=>{
+  try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}
+  catch{fullscreenButton.textContent='FULLSCREEN UNAVAILABLE';}
+  queueViewportResize();
+ };
+ document.addEventListener('fullscreenchange',()=>{
+  fullscreenButton.textContent=document.fullscreenElement?'EXIT FULLSCREEN':'FULLSCREEN';fullscreenButton.setAttribute('aria-label',document.fullscreenElement?'Exit fullscreen':'Enter fullscreen');releaseInputs();queueViewportResize();
+ });
+}
 // SOURCE: liminal.js
 // liminal.js — bundled from the owner’s liminal baseline.
 /* ==================================================================
@@ -1112,13 +1304,14 @@ function reviewTick(dt){
 }
 function chBannerTick(){}
 function reviewHud(){
+ if(!hudComposing){hudUpdate();return;}
  if(!review.active)return;
  const flags=[review.ai?'AI ON':'AI OFF',review.damage?'DAMAGE ON':'PROTECTED',review.unlimited?'AMMO REFILL':'FINITE AMMO'];
  $('reviewBarText').textContent=reviewScenes[review.scene].label+' · '+flags.join(' / ');
  $('reviewStatus').textContent=review.done?'SCENE COMPLETE · B TO REPEAT':'T CONTROLS · B RESET · H PAIN PREVIEW'+(reviewFixture()?' · N TARGETS':useChapter?' · N REPEAT SCENE':'');
  $('reviewDiagnostics').textContent=BUILD.id+' | '+review.scene+' | '+mode+' / '+(liminal.mode||'ward')+' | '+player.x.toFixed(2)+', '+player.y.toFixed(2)+' | '+enemies.filter(e=>e.alive).length+' alive | '+bullets.length+' projectiles';
  $('scoreLabel').textContent='TEST SCORE · NOT SAVED';
- if(s4tRunning())s4tHud();if(cbRunning())cbHud();
+ // Scene HUDs are composed later by hudUpdate, in narrative priority order.
 }
 function reviewOpenExit(){
  if(!review.active||s4Running())return;
@@ -1351,9 +1544,12 @@ function chSetupEnvironment(){
     add('bed',x,59.5,0,{seed:seed++});
     add('curtain',x+1.2,58.9,0,{seed:seed++});
   }
-  add('sign',16.03,55,Math.PI/2,{label:'WAITING'});
+  // Mount beside the opening, on its exposed reception wall. The old WAITING
+  // plaque occupied the doorway and obscured which alcove was the way out.
+  add('sign',16.055,53,Math.PI/2,{nx:1,ny:0,z:.8,w:1.65,h:.32,
+    label:'SECURITY EXIT / POWER REQUIRED',readyLabel:'SECURITY EXIT / OPEN',wfExit:'security'});
   add('sign',36.97,52,-Math.PI/2,{label:'NO POWER'});
-  add('arch',15.5,55,Math.PI/2,{label:'SECURITY'});
+  add('arch',15.5,55,Math.PI/2,{label:'SECURITY',readyLabel:'EXIT · FEVER THEATRE',wfExit:'security'});
 
   // plant hall: switchgear along the back wall, pipework overhead
   for(let x=38;x<=54;x+=3)add('monitor',x,4.5,0);
@@ -1381,6 +1577,7 @@ function chSetLights(){
   const B=dim?[.26,.28,.36]:[.80,.86,.84];       // circulation
   const C=dim?[.30,.56,.60]:[.44,.88,.92];       // service
   L(26,55,A); L(20,57,A); L(32,57,A);
+  if(CH.power)L(16.6,55.5,[.62,.91,.74]); // steady pool at the released exit
   L(26,46,B); L(26,36,B);      // nothing at y40-42: the gate mouth stays black
   L(10,32,B); L(26,32,B); L(42,32,B);
   L(10,40,B); L(16,44,B);
@@ -2100,7 +2297,6 @@ audio.tension=function(level){
   const t=this.ctx.currentTime;
   this.musicBed.gain.setTargetAtTime(hbVictory()?0:level?1:.26,t,level?.25:.9);
 };
-
 // SOURCE: fever.js
 /* ================================================ FEVER THEATRE  (P06) === */
 const FV={
@@ -2220,11 +2416,15 @@ function fvSetupEnvironment(){
   add('sign',4.03,20,Math.PI/2,{label:'THEATRES 1-3'});
   add('sign',4.03,44,Math.PI/2,{label:'RECOVERY'});
   add('sign',30,12.03,0,{label:'THEATRE SUITE'});
-  add('sign',16,50.03,0,{label:'THEATRE SUITE'});
+  add('sign',16,50.03,0,{label:'← AIRLOCK EXIT / VESTIBULE',wfExit:'airlock'});
 
   // vestibule and the airlock you leave by
-  add('arch',7.5,59.5,0,{label:'AIRLOCK'});
+  add('arch',7.5,59.5,0,{label:'AIRLOCK',readyLabel:'EXIT · HEART WARD',wfExit:'airlock'});
   add('sign',10.97,56,-Math.PI/2,{label:'AIRLOCK / SEALED'});
+  // North-facing status plaque remains visible before the door releases and
+  // points directly at the opening when returning from the theatre ring.
+  add('sign',9.3,58.955,Math.PI,{nx:0,ny:-1,z:.8,w:1.6,h:.32,
+    label:'AIRLOCK EXIT / SEALED',readyLabel:'EXIT OPEN → / HEART WARD',wfExit:'airlock'});
   add('sign',10.97,53,-Math.PI/2,{label:'1 POWER / 2 VENT / 3 PURGE'});
   add('monitor',4.45,57,Math.PI/2);add('monitor',10.55,57,-Math.PI/2);
 
@@ -2260,7 +2460,8 @@ function fvLights(){
   L(14,51,[.30,.36,.42]); L(24,51,[.30,.36,.42]);
   for(let y=19;y<=43;y+=8)L(50,y,[.22,.26,.30]);          // the store, dim on purpose
   L(8,23.5,[.44,.54,.52]); L(8,39.5,[.44,.54,.52]);       // scrub lobbies
-  L(7,55,[.66,.66,.62]); L(7,60,[.30,.34,.32]);
+  L(7,55,[.66,.66,.62]); L(7,60,FV.sealed?[.30,.34,.32]:[.58,.88,.70]);
+  if(!FV.sealed)L(7.5,58.2,[.48,.78,.61]);
   for(let x=32;x<=50;x+=6)L(x,51,FV.returnOpen?[.22,.59,.49]:[.12,.15,.18]);
   if(FV.purgeT>0)for(const [x,y] of [[33,37],[44,37],[33,44],[44,44]])L(x,y,[1.05,.16,.28]);
   horrorLights();
@@ -2507,7 +2708,6 @@ audio.theatre=function(on){
   const want=on?this.impLong:this.impShort;
   if(this.room.buffer!==want){try{this.room.buffer=want;}catch(e){}}
 };
-
 // SOURCE: fever-choices.js
 // R3-P01: each theatre changes how the suite can be used. No kill quota.
 const FV_SYSTEMS={
@@ -2621,7 +2821,7 @@ function fvHud(){
   const beats=[];
   if(FV.ventT>0)beats.push('SPINE SUPPRESSED '+Math.ceil(FV.ventT)+'s');
   if(FV.purgeT>0)beats.push('PURGE '+Math.ceil(FV.purgeT)+'s / KEEP MOVING');
-  if(!beats.length)beats.push(FV.returnOpen?'STORE RETURN OPEN':FV.closed?'Choose your next system · M opens the map':'Find a labelled control in each operating room. [E] to use.');
+  if(!beats.length)beats.push(FV.returnOpen?'STORE RETURN OPEN':FV.closed?'Choose your next system · M opens the map':'Find a labelled control in each operating room. '+(coarse?'Tap USE.':'[E] to use.'));
   $('fvStatus').textContent=beats.join(' · ');
  }
  const p=on?fvNearestUse():null;
@@ -2631,7 +2831,7 @@ function fvHud(){
  const action=p.id==='recovery'?(info.done?'SUPPLY EMPTY':info.ready?'TAKE EMERGENCY SUPPLY':'NO POWER / ISOLATE OR 1'):
   info.done?'SYSTEM ISOLATED':p.id==='OR3'&&FV.purgeT>0?'PURGE RUNNING':system.action;
  $('interactAction').textContent=(info.done||!info.ready||info.progress>0?'':coarse?'USE · ':'[E] ')+action;
- $('touchUse').textContent=info.done?'DONE':p.id==='OR3'&&FV.purgeT>0?'RUNNING':'USE';
+ touchSetLabel('touchUse',info.done?'DONE':p.id==='OR3'&&FV.purgeT>0?'RUNNING':'USE');
  $('interactHint').textContent=p.id==='recovery'?'One use: +40 life, reserve ammunition and a checkpoint.':system.hint;
  $('interactPrompt').style.borderColor=info.color;
 }
@@ -3790,10 +3990,10 @@ function s4Tick(){if(!s4Running()||mode!=='playing')return;const zone=s4Zone();i
 function s4NearbyLabel(){let best=null,near=4.6;for(const l of S4.labels){if(!l.interact||(l.front&&(player.x-l.x)*l.front[0]+(player.y-l.y)*l.front[1]<0))continue;const d=Math.hypot(player.x-l.x,player.y-l.y),a=Math.abs(angle(Math.atan2(l.y-player.y,l.x-player.x)-player.a));if(d<near&&a<.85&&(d<.3||s4CastRay(player.x,player.y,(l.x-player.x)/d,(l.y-player.y)/d,d-.2).d>=d-.21)){best=l;near=d;}}return best;}
 function s4Hud(){
  $('wardName').innerHTML='04 <b>NO WAY OUT</b>';
- const sign=s4NearbyLabel();$('goal').textContent=sign?'[E] '+sign.interact:'EXPLORE THE GROUNDS · '+(S4.zone||'ENTRANCE COURT');
+ const sign=s4NearbyLabel();$('goal').textContent=sign?(coarse?'USE · ':'[E] ')+sign.interact:'EXPLORE THE GROUNDS · '+(S4.zone||'ENTRANCE COURT');
  $('lifeHint').textContent='TAKE A BREATH';$('compassText').textContent='HOSPITAL';
  $('compassArrow').style.transform='rotate('+angle(Math.atan2(50-player.y,64-player.x)-player.a)+'rad)';
- $('touchUse').classList.toggle('hidden',!sign);$('touchUse').textContent='READ';
+ $('touchUse').classList.toggle('hidden',!sign);touchSetLabel('touchUse','READ');
  if(review.active){$('reviewBarText').textContent='NO WAY OUT · CALM EXTERIOR REVIEW';$('reviewStatus').textContent='T CONTROLS · B RESET · M MAP · TAB PEEK · CALM ENTRY · NO ENCOUNTERS';}
 }
 function s4Interact(){if(!s4Running()||mode!=='playing')return false;if(s4tInteract()||s4dInteract())return true;const l=s4NearbyLabel();if(!l)return false;feed(review.active?l.read:l.read.replace('T opens the review guide.','ESC → TEST WARD opens the review guide.'));return true;}
@@ -4371,7 +4571,7 @@ function s4dReset(){
  document.body.classList.remove('departure');$('sequenceControls').classList.add('hidden');
  audio.departureStop?.();s4qReset();s4tReset();cbReset();$('compassArrow').style.visibility='visible';
 }
-function s4dPhase(phase){S4D.phase=phase;S4D.t=0;s4dHud();}
+function s4dPhase(phase){S4D.phase=phase;S4D.t=0;hudClock=0;}
 function s4dBeginWalk(){
  if(S4D.on)return false;
  Object.assign(S4D,{on:true,carry:s4dCapture(),origin:{x:player.x,y:player.y,a:player.a},clock:0});
@@ -4450,7 +4650,7 @@ function s4dRestore(){
  s4dPlaceWreck();if(c.quest){Object.assign(S4Q,c.quest,{visited:[...c.quest.visited],action:null});s4qApplyGate();s4qApplyVehicle();if(S4Q.moved)S4D.door=0;}S4.visited=new Set(c.visited||[]);reviewPlace(c.x,c.y,c.a);enemies=c.enemies.map(e=>({...e}));drops=c.drops.map(d=>({...d}));decals=c.decals.map(d=>({...d}));
  stageKills=c.stageKills;stageTime=c.stageTime;enemyId=c.enemyId;S4.entry=c.entry;
  mode='playing';document.body.classList.add('playing');$('hud').classList.remove('hidden');$('touch').classList.remove('hidden');
- review.done=c.quest?c.quest.done:c.phase==='aftermath';audio.start();hudUpdate();s4dHud();lockPointer();feed(c.quest?c.quest.checkpointLabel+' · CHECKPOINT':'COURTYARD CHECKPOINT');return true;
+ review.done=c.quest?c.quest.done:c.phase==='aftermath';audio.start();hudUpdate();lockPointer();feed(c.quest?c.quest.checkpointLabel+' · CHECKPOINT':'COURTYARD CHECKPOINT');return true;
 }
 function s4dSpawn(actor,index){
  // The emerging body occupies a real safe cell at the doorway/cover edge.
@@ -4495,7 +4695,7 @@ function s4dTick(dt){
  }
  s4qTick(dt);
  if(s4dLocked()){_safeX=player.x;_safeY=player.y;msgT=feedT=0;shake*=Math.exp(-dt*9);updateEffects(dt);}
- s4dHud();
+ // The shared HUD pass runs after all simulation systems.
 }
 function s4dGunDip(){
  if(!s4dLocked())return 0;
@@ -4504,6 +4704,7 @@ function s4dGunDip(){
  return 1.35;
 }
 function s4dHud(){
+ if(!hudComposing){hudUpdate();return;}
  const locked=s4dLocked();document.body.classList.toggle('departure',locked);
  $('sequenceControls').classList.toggle('hidden',!locked||mode!=='playing');
  if(!S4D.on)return;
@@ -4519,17 +4720,20 @@ function s4dHud(){
  }else if(S4D.phase==='aftermath'){
   $('goal').textContent='GARDEN BLOCKED · EXPLORE PARKING / BUS ROAD';$('lifeHint').textContent='TAKE A BREATH';
  }
- const nearWreck=!S4Q.on&&S4D.crashed&&Math.hypot(player.x-61.5,player.y-43)<3;
- if(nearWreck&&!locked){$('touchUse').classList.remove('hidden');$('touchUse').textContent='EXAMINE';}
+ const nearWreck=s4dWreckNear();
+ if(nearWreck&&!locked){$('touchUse').classList.remove('hidden');touchSetLabel('touchUse','EXAMINE');}
  if(review.active){
   $('reviewBarText').textContent='NO WAY OUT · '+(locked?'DISCHARGE INTERRUPTED':S4D.phase==='fight'?'COURTYARD AMBUSH':'COURTYARD CLEAR');
   $('reviewStatus').textContent=locked?'ENTER / SKIP · ESC PAUSE · T CONTROLS':S4D.phase==='aftermath'?'PHASE 2 COMPLETE · T REVIEW · B REPLAY':'T CONTROLS · B REPLAY · '+(review.ai?'AI ON':'AI OFF')+' / '+(review.damage?'DAMAGE ON':'PROTECTED');
  }
  s4qHud();
 }
+function s4dWreckNear(){
+ return mode==='playing'&&s4Running()&&S4D.on&&!S4Q.on&&!s4dLocked()&&S4D.crashed&&s4qCanReach({x:61.5,y:43},3,.9);
+}
 function s4dInteract(){
  if(S4Q.on)return s4qInteract();
- if(!S4D.on||s4dLocked()||!S4D.crashed||Math.hypot(player.x-61.5,player.y-43)>=3)return false;
+ if(!s4dWreckNear())return false;
  feed('BURNING. THE GARDEN PATH IS BLOCKED.\n'+(review.active?'Moving the wreck is the next development phase.':'Find another way through the grounds.'));return true;
 }
 function s4dReview(scene){
@@ -5010,6 +5214,7 @@ function s4qTick(dt){
  if(S4Q.done&&!CB.on)cbfJourneyBegin();
 }
 function s4qHud(){
+ if(!hudComposing){hudUpdate();return;}
  const active=s4qRunning();$('questInventory').classList.toggle('hidden',!active);if(!active)return;
  $('questKeys').textContent=(S4Q.keys?'✓ ':'○ ')+'KEYS';$('questExt').textContent=(S4Q.ext?'✓ ':'○ ')+'EXTINGUISHER';
  $('questKeys').classList.toggle('found',S4Q.keys);$('questExt').classList.toggle('found',S4Q.ext);
@@ -5017,9 +5222,9 @@ function s4qHud(){
  let goal=S4Q.moved?'FOLLOW THE HEDGE WALK TO THE GARDEN':S4Q.keys&&S4Q.ext?'RETURN TO THE AMBULANCE':S4Q.keys?'FIND THE BUS SHELTER EXTINGUISHER':S4Q.ext?'FIND STAFF CAR 04 · PARKING':'KEYS IN PARKING · EXTINGUISHER AT BUS STOP';
  if(S4Q.done)goal='THE GUARDIAN BLOCKS THE GATES';
  if(S4Q.action)goal=(S4Q.action.kind==='extinguish'?'EXTINGUISHING ENGINE FIRE':'CLEARING THE GARDEN WALK')+' · '+Math.min(100,Math.floor(S4D.t/(S4Q.action.kind==='extinguish'?4.15:5.6)*100))+'%';
- $('goal').textContent=near?'[E] '+near.label:sign?'[E] '+sign.interact:goal;
+ $('goal').textContent=near?(coarse?'USE · ':'[E] ')+near.label:sign?(coarse?'USE · ':'[E] ')+sign.interact:goal;
  $('lifeHint').textContent=threats.length?(review.active&&!review.damage?'PROTECTED':'KILL TO RESTORE'):'TAKE A BREATH';
- $('touchUse').classList.toggle('hidden',!near&&!sign);$('touchUse').textContent=near?near.touch:'READ';
+ $('touchUse').classList.toggle('hidden',!near&&!sign);touchSetLabel('touchUse',near?near.touch:'READ');
  // Guide along roads, never straight through the dense forest.
  let target,label;
  if(S4Q.moved){target={x:56.5,y:39};label='GARDEN';if(player.x<57&&player.y<40)target={x:43,y:26};}
@@ -5332,7 +5537,7 @@ function equippedItem(){return weapon===3?S4T_ITEM:guns[weapon];}
 function s4tReset(){
  if(weapon===3)weapon=S4T.previousGun;
  Object.assign(S4T,s4tFresh());Object.assign(S4T_RUNTIME,{checkpoint:null,obstacles:[],nav:null});
- document.body.classList.remove('seraphim-held');$('slot3').classList.add('hidden');$('touchFire').textContent='FIRE';
+ document.body.classList.remove('seraphim-held');$('slot3').classList.add('hidden');touchSetLabel('touchFire','FIRE');
  audio.seraphimStop?.();
 }
 function s4tEquip(){
@@ -5446,14 +5651,15 @@ function s4tRestore(){
  releaseInputs();audio.seraphimStop();hudUpdate();feed('SERAPHIM CHECKPOINT · '+S4T.phase.toUpperCase());return true;
 }
 function s4tHud(){
+ if(!hudComposing){hudUpdate();return;}
  const on=s4tRunning(),held=s4tCarried(),selected=on&&weapon===3;
  $('slot3').classList.toggle('hidden',!held);$('slot3').classList.toggle('active',selected);
- document.body.classList.toggle('seraphim-held',selected);$('touchFire').textContent=selected?'THROW':'FIRE';
+ document.body.classList.toggle('seraphim-held',selected);touchSetLabel('touchFire',selected?'THROW':'FIRE');
  if(!on)return;
  const near=s4tNear();if(!cbRunning())$('lifeHint').textContent='PROTECTED';
- $('goal').textContent=near?'[E] LIFT THE WOUNDED SERAPHIM':held?(selected?'FIRE TO THROW · 1–3 GUNS':'4 TO HOLD THE SERAPHIM · ITS LIGHT FOLLOWS YOU'):S4T.phase==='airborne'?'FOLLOW THE FALLING LIGHT':S4T.phase==='water'?'WATER LANDED · REVIEW RETURN PENDING':'FOLLOW THE HOLY LIGHT';
+ $('goal').textContent=near?(coarse?'USE · ':'[E] ')+'LIFT THE WOUNDED SERAPHIM':held?(selected?(coarse?'FIRE TO THROW · GUN TO SWITCH':'FIRE TO THROW · 1–3 GUNS'):(coarse?'GUN TO SELECT THE SERAPHIM':'4 TO HOLD THE SERAPHIM · ITS LIGHT FOLLOWS YOU')):S4T.phase==='airborne'?'FOLLOW THE FALLING LIGHT':S4T.phase==='water'?'WATER LANDED · REVIEW RETURN PENDING':'FOLLOW THE HOLY LIGHT';
  if(selected){$('ammo').textContent='';$('reserve').textContent='';}
- $('touchUse').classList.toggle('hidden',!near&&!s4NearbyLabel());$('touchUse').textContent=near?'LIFT':'READ';
+ $('touchUse').classList.toggle('hidden',!near&&!s4NearbyLabel());touchSetLabel('touchUse',near?'LIFT':'READ');
  $('compassText').textContent=held?'CARRIED':S4T.phase==='water'?'IN THE WATER':'SERAPHIM';
  const dx=S4T.x-player.x,dy=S4T.y-player.y,d=Math.hypot(dx,dy);
  const visible=!held&&d>.2&&s4CastRay(player.x,player.y,dx/d,dy/d,d).d>=d-.15;
@@ -5550,7 +5756,7 @@ function s4tRenderHands(){
  const art=S4T_ART.hands;if(!s4tRunning()||!art)return;
  const carried=s4tCarried();if(!carried&&S4T.throwT<=0)return;const out=carried?0:1-S4T.throwT/.32;
  // Width is capped as well as height: portrait hands never swallow the viewport.
- const w=Math.min(W*.88,H*1.1),h=w*art.h/art.w,moving=settings.reduce?0:Math.min(1,Math.hypot(player.vx,player.vy)/4.65);
+ const w=Math.min(W*.88,H*1.1,coarse?Math.min(W*.76,H*.48*art.w/art.h):Infinity),h=w*art.h/art.w,moving=settings.reduce?0:Math.min(1,Math.hypot(player.vx,player.vy)/4.65);
  const breath=settings.reduce?0:Math.sin(S4T.clock*2.1)*h*.005;
  const x=W/2+(settings.reduce?0:Math.sin(bob)*moving*2-sway*3),y=H+h*.02+breath+weaponDrop*h*1.4+out*h*1.35;
  wc.save();wc.translate(x,y);if(!settings.reduce)wc.rotate(Math.sin(bob)*moving*.004);
@@ -5921,6 +6127,7 @@ function cbReview(scene){
  msgT=feedT=0;cbSave();hudUpdate();audio.levels();
 }
 function cbHud(){
+ if(!hudComposing){hudUpdate();return;}
  if(!cbRunning())return;
  if(cbfHud())return;
  const visible=mode!=='menu',pct=CB.hp/CB_MAX*100;
@@ -6542,7 +6749,7 @@ function cbfHud(){
  $('bossFill').style.width=pct+'%';$('bossTrail').style.width=pct+'%';
  $('bossHealth').textContent=CB.stagger>0?'OPEN':resolved?'':Math.round(pct)+'%';
  $('bossState').textContent=CB.state==='transition'?'THE LITTLE HEAD WAKES':CB.state==='retrieve'?'THE TOY IS HIS':CB.state==='fetch'?(CB.toyHeld?'ONE LAST CHEW':'THE BODY FOLLOWS'):CB.state==='drowning'?'NO BREATH':CB.stagger>0?'MAKE YOUR MOVE':CB.attack?.kind==='beam'?(CB.attack.fired?'WHITEOUT':'BEAM CHARGING'):CB.attack?(CB.yap?'CROSSFIRE':'SHEPHERD SALVO'):CB.yap?'CHIHUAHUA FRENZY':'GUNFIRE BUYS TIME';
- $('goal').textContent=after?(hgInside()?'FOLLOW THE BRIDGE INTO HELL':'HELL IS OPEN · WALK THROUGH'):resolved?'WATCH THE WATER':CB.state==='transition'?'THE CAPTIVE LIGHT FALLS':s4tNear()?'[E] LIFT THE WOUNDED SERAPHIM':s4tCarried()?(weapon===3?'FIRE TO THROW · 1–3 GUNS':'4 TO HOLD THE SERAPHIM'):S4T.phase==='airborne'?'FOLLOW THE FALLING LIGHT':'THE LITTLE HEAD WANTS ITS TOY';
+ $('goal').textContent=after?(hgInside()?'FOLLOW THE BRIDGE INTO HELL':'HELL IS OPEN · WALK THROUGH'):resolved?'WATCH THE WATER':CB.state==='transition'?'THE CAPTIVE LIGHT FALLS':s4tNear()?(coarse?'USE · ':'[E] ')+'LIFT THE WOUNDED SERAPHIM':s4tCarried()?(weapon===3?(coarse?'FIRE TO THROW · GUN TO SWITCH':'FIRE TO THROW · 1–3 GUNS'):(coarse?'GUN TO SELECT THE SERAPHIM':'4 TO HOLD THE SERAPHIM')):S4T.phase==='airborne'?'FOLLOW THE FALLING LIGHT':'THE LITTLE HEAD WANTS ITS TOY';
  $('lifeHint').textContent=cbfSafe()?'TAKE A BREATH':!review.active||review.damage?'STAY MOBILE':'PROTECTED';
  const target=after?{x:43,y:hgInside()?6:17.5}:resolved?CB:S4T,held=s4tCarried();
  $('compassText').textContent=after?(hgInside()?'THE OTHER SIDE':'GARDEN GATES'):resolved?'THE POND':held?'SERAPHIM CARRIED':'SERAPHIM';
@@ -6965,7 +7172,7 @@ audio.reset=function(){this.hellStormStop();HG_STORM.clock=0;HG_STORM.thunder=-1
 // Navigation ignores creatures. It never owns quest state or changes collision.
 const WF_BREAKER={x:56.86,y:9,id:'mains',label:'Plant Hall',nx:-1,ny:0};
 const WF={map:null,key:'',open:null,edges:null,field:null,targetKey:'',selected:'',path:[],
- seen:null,cell:-1,at:-1,routeBuilds:0,gridBuilds:0,wasUncharted:false};
+ seen:null,cell:-1,at:-1,navTarget:'',navArrow:'',routeBuilds:0,gridBuilds:0,wasUncharted:false};
 function wfUncharted(){return !!(CH.maze||CH.tr||liminal.mode||hgInside());}
 function wfTopologyKey(){return [stage,useChapter,CH.power,FV.closed,FV.returnOpen,
  HW.resolved,HB.state,S4Q.moved,S4Q.gate,CB.rewarded,S4D.phase].join('|');}
@@ -6996,9 +7203,9 @@ function wfSync(){
 }
 function wfTargets(){
  if(wfUncharted()||s4dLocked())return [];
- if(chRunning())return [CH.power?{...exit,id:'security',label:'Security door'}:{...WF_BREAKER}];
+ if(chRunning())return [CH.power?{...exit,id:'security',label:'Security exit'}:{...WF_BREAKER}];
  if(fvRunning()){
-  if(FV.closed>=3)return [{...exit,id:'airlock',label:'Exit airlock'}];
+  if(FV.closed>=3)return [{...exit,id:'airlock',label:'Airlock exit'}];
   return FV.valves.filter(v=>!v.closed&&!(v.id==='OR3'&&FV.purgeT>0))
    .map(v=>({x:v.x,y:v.y-1.38,id:v.id,label:{OR1:'OR 1 · Power',OR2:'OR 2 · Vent',OR3:'OR 3 · Purge'}[v.id]}));
  }
@@ -7093,18 +7300,35 @@ function chInteract(){
  if(CH.power){feed('MAINS ONLINE / SECURITY DOOR RELEASED');return true;}
  chRestorePower();wfSync();hudUpdate();return true;
 }
+// A small angular dead band stops direction labels chattering at a threshold.
+function wfDirection(target,bearing){
+ const previous=WF.navTarget===target?.id?WF.navArrow:'';
+ let symbol='·';
+ if(bearing?.near)symbol='◇';
+ else if(bearing){
+  const a=bearing.angle,abs=Math.abs(a);
+  if(previous==='↶'&&abs>2.37)symbol='↶';
+  else if(abs>2.53)symbol='↶';
+  else if(previous==='↑'&&abs<.46)symbol='↑';
+  else if(previous==='‹'&&a<-.30&&a>-2.53)symbol='‹';
+  else if(previous==='›'&&a>.30&&a<2.53)symbol='›';
+  else symbol=abs>2.45?'↶':a<-.38?'‹':a>.38?'›':'↑';
+ }
+ WF.navTarget=target?.id||'';WF.navArrow=symbol;return symbol;
+}
 function wfHud(){
  wfSync();const target=wfTarget(),bearing=mode==='playing'?wfBearing(target):null;
  const arrow=$('compassArrow'),label=$('compassText');
  arrow.style.transform='none';arrow.style.visibility='visible';
  $('compass').classList.toggle('hidden',!target||mode!=='playing'||wfUncharted());
  if(target){
-  arrow.textContent=!bearing?'·':bearing.near?'◇':Math.abs(bearing.angle)>2.45?'↶':bearing.angle<-.38?'‹':bearing.angle>.38?'›':'↑';
+  arrow.textContent=wfDirection(target,bearing);
   label.textContent=target.label;
-  $('compass').setAttribute('aria-label',target.label+': '+(!bearing?'follow the signs':bearing.near?'nearby':Math.abs(bearing.angle)>2.45?'turn around':bearing.angle<-.38?'turn left':bearing.angle>.38?'turn right':'ahead'));
-  $('wfNavHint').textContent=!bearing?'FOLLOW SIGNS':bearing.near?'NEARBY':
-   Math.abs(bearing.angle)>2.45?'TURN AROUND':bearing.angle<-.38?'TURN LEFT':bearing.angle>.38?'TURN RIGHT':'AHEAD';
+  const hint={'·':'FOLLOW SIGNS','◇':'NEARBY','↶':'TURN AROUND','‹':'TURN LEFT','›':'TURN RIGHT','↑':'AHEAD'}[arrow.textContent];
+  $('compass').setAttribute('aria-label',target.label+': '+hint.toLowerCase());
+  $('wfNavHint').textContent=hint;
  }
+ if(!target){WF.navTarget='';WF.navArrow='';}
  if(chRunning()&&!wfUncharted()){
   $('fvStatus').classList.remove('hidden');
   $('fvStatus').textContent=CH.power?'Service return is open. Leave through Security.':'Ward 1 → Service Riser → Plant Hall';
@@ -7112,7 +7336,7 @@ function wfHud(){
   if(near){
    $('interactAction').textContent=CH.power?'MAINS · ONLINE':(coarse?'USE · ':'[E] ')+'RESTORE MAINS POWER';
    $('interactHint').textContent=CH.power?'Security is unlocked. Take the service return.':'Releases the Security door and opens the service return.';
-   $('interactPrompt').style.borderColor='#bbab7b';$('touchUse').textContent=CH.power?'ONLINE':'POWER';
+   $('interactPrompt').style.borderColor='#bbab7b';touchSetLabel('touchUse',CH.power?'ONLINE':'POWER');
   }
  }
  if(fvRunning()){
@@ -7135,16 +7359,20 @@ function wfText(c,text,x,y,width,size,color='#e0e1c8',align='left'){
 function wfSignLines(label){
  return String(label||'WARD').replace(/W[‑–]0/g,'W-0').trim().split(/\s*\/\s*|\s{2,}/).filter(Boolean).slice(0,3);
 }
+function wfExitReady(p){
+ return p.wfExit==='security'?CH.power:p.wfExit==='airlock'?!FV.sealed:false;
+}
 function wfSignTexture(p){
- let label=p.label;
+ const exitReady=!!p.wfExit&&wfExitReady(p);
+ let label=exitReady&&p.readyLabel?p.readyLabel:p.label;
  if(chRunning()&&label==='NO POWER')label=CH.power?'MAINS ONLINE / SECURITY OPEN':'MAINS OFFLINE / PLANT HALL';
- const lines=wfSignLines(label),arch=p.kind==='arch',small=/^W[-‑–]0\d$|^BAY \d$/.test(label),key='sign:'+arch+':'+lines.join('|');
+ const lines=wfSignLines(label),arch=p.kind==='arch',small=/^W[-‑–]0\d$|^BAY \d$/.test(label),key='sign:'+arch+':'+exitReady+':'+lines.join('|');
  if(WF_SIGN_CACHE.has(key))return WF_SIGN_CACHE.get(key);
  const img=document.createElement('canvas');img.width=small?384:768;img.height=arch?54:small?132:lines.length>1?146:114;
  const c=img.getContext('2d'),h=img.height,w=img.width;
  c.fillStyle='#111f21';c.fillRect(0,0,w,img.height);
- c.fillStyle='#74817a';c.fillRect(2,2,w-4,img.height-4);c.fillStyle='#283e3d';c.fillRect(5,5,w-10,img.height-10);
- const tint=/POWER|PLANT|HV/.test(label)?'#ae9871':/OR |PURGE|STERILE|THEATRE/.test(label)?'#879b96':'#9ca99b';
+ c.fillStyle=exitReady?'#8dbab0':'#74817a';c.fillRect(2,2,w-4,img.height-4);c.fillStyle=exitReady?'#183b35':'#283e3d';c.fillRect(5,5,w-10,img.height-10);
+ const tint=exitReady?'#b7e4c5':/POWER|PLANT|HV/.test(label)?'#ae9871':/OR |PURGE|STERILE|THEATRE/.test(label)?'#879b96':'#9ca99b';
  c.fillStyle=tint;c.fillRect(12,12,5,h-24);
  c.fillStyle='#bfc2ac20';c.fillRect(18,7,w-38,2);
  for(const x of [28,w-28])for(const y of [18,h-18]){
@@ -7153,7 +7381,7 @@ function wfSignTexture(p){
  // Fixed stains, not per-frame noise; the lettering stays clean and legible.
  c.fillStyle='#00000016';for(let i=0;i<22;i++)c.fillRect((i*113+21)%w,(i*37)%h,3+(i%11),1);
  const texts=arch?[lines.join(' · ')]:lines;
- texts.forEach((text,i)=>wfText(c,text,arch||small?w/2:52,(i+.5)*h/texts.length,w-100,arch?34:small?62:lines.length>1?42:59,undefined,arch||small?'center':'left'));
+ texts.forEach((text,i)=>wfText(c,text,arch||small?w/2:52,(i+.5)*h/texts.length,w-100,arch?34:small?62:lines.length>1?42:59,exitReady?'#d4f3d8':undefined,arch||small?'center':'left'));
  WF_SIGN_CACHE.set(key,img);return img;
 }
 function wfSignFace(p){
@@ -7266,7 +7494,6 @@ const WF_ADMISSIONS_PROPS=[
  {kind:'sign',x:56.88,y:7.2,a:-Math.PI/2,label:'MAINS SWITCH / SECURITY INTERLOCK'}
 ];
 function wfExtraProps(){return chRunning()&&!wfUncharted()?WF_ADMISSIONS_PROPS:[];}
-
 // SOURCE: ward-map.js
 // A quiet, paused hospital plan plus a local Tab peek. No enemy radar.
 const WF_MAP={parent:'playing',w:0,h:0};
@@ -7401,7 +7628,7 @@ function wfRenderCorner(){
  const show=mode==='playing'&&(mapHeld||settings.map)&&!s4dLocked();
  $('map').classList.toggle('hidden',!show);if(show)wfDrawMap(mapCtx,150,150,true);
 }
-$('wfMapClose').onclick=wfCloseMap;$('touchMap').onclick=wfOpenMap;$('pauseMap').onclick=wfOpenMap;
+$('wfMapClose').onclick=wfCloseMap;$('pauseMap').onclick=wfOpenMap;
 addEventListener('resize',()=>{if(mode==='map')wfRefreshMap();});
 
 // SOURCE: creature-voices.js
@@ -8134,6 +8361,8 @@ requestAnimationFrame(loop);
    'ASHFALL // NEON WARD — BETA '+BUILD.version,
    'Browser: '+browser,
    'Window: '+innerWidth+' × '+innerHeight,
+   'Visible viewport: '+gameViewport.width+' × '+gameViewport.height,
+   'Touch controls: '+(coarse?'yes':'no'),
    'Chapter: '+(stage+1)+' / '+(s4Running()?'No Way Out':wardNames[stage]||'Menu'),
    'Objective: '+$('goal').textContent,
    'Position: '+player.x.toFixed(2)+', '+player.y.toFixed(2),

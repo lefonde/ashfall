@@ -116,11 +116,15 @@ function fvSetupEnvironment(){
   add('sign',4.03,20,Math.PI/2,{label:'THEATRES 1-3'});
   add('sign',4.03,44,Math.PI/2,{label:'RECOVERY'});
   add('sign',30,12.03,0,{label:'THEATRE SUITE'});
-  add('sign',16,50.03,0,{label:'THEATRE SUITE'});
+  add('sign',16,50.03,0,{label:'← AIRLOCK EXIT / VESTIBULE',wfExit:'airlock'});
 
   // vestibule and the airlock you leave by
-  add('arch',7.5,59.5,0,{label:'AIRLOCK'});
+  add('arch',7.5,59.5,0,{label:'AIRLOCK',readyLabel:'EXIT · HEART WARD',wfExit:'airlock'});
   add('sign',10.97,56,-Math.PI/2,{label:'AIRLOCK / SEALED'});
+  // North-facing status plaque remains visible before the door releases and
+  // points directly at the opening when returning from the theatre ring.
+  add('sign',9.3,58.955,Math.PI,{nx:0,ny:-1,z:.8,w:1.6,h:.32,
+    label:'AIRLOCK EXIT / SEALED',readyLabel:'EXIT OPEN → / HEART WARD',wfExit:'airlock'});
   add('sign',10.97,53,-Math.PI/2,{label:'1 POWER / 2 VENT / 3 PURGE'});
   add('monitor',4.45,57,Math.PI/2);add('monitor',10.55,57,-Math.PI/2);
 
@@ -156,7 +160,8 @@ function fvLights(){
   L(14,51,[.30,.36,.42]); L(24,51,[.30,.36,.42]);
   for(let y=19;y<=43;y+=8)L(50,y,[.22,.26,.30]);          // the store, dim on purpose
   L(8,23.5,[.44,.54,.52]); L(8,39.5,[.44,.54,.52]);       // scrub lobbies
-  L(7,55,[.66,.66,.62]); L(7,60,[.30,.34,.32]);
+  L(7,55,[.66,.66,.62]); L(7,60,FV.sealed?[.30,.34,.32]:[.58,.88,.70]);
+  if(!FV.sealed)L(7.5,58.2,[.48,.78,.61]);
   for(let x=32;x<=50;x+=6)L(x,51,FV.returnOpen?[.22,.59,.49]:[.12,.15,.18]);
   if(FV.purgeT>0)for(const [x,y] of [[33,37],[44,37],[33,44],[44,44]])L(x,y,[1.05,.16,.28]);
   horrorLights();
@@ -403,4 +408,3 @@ audio.theatre=function(on){
   const want=on?this.impLong:this.impShort;
   if(this.room.buffer!==want){try{this.room.buffer=want;}catch(e){}}
 };
-

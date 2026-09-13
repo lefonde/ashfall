@@ -68,7 +68,7 @@ function s4tRenderHands(){
  const art=S4T_ART.hands;if(!s4tRunning()||!art)return;
  const carried=s4tCarried();if(!carried&&S4T.throwT<=0)return;const out=carried?0:1-S4T.throwT/.32;
  // Width is capped as well as height: portrait hands never swallow the viewport.
- const w=Math.min(W*.88,H*1.1),h=w*art.h/art.w,moving=settings.reduce?0:Math.min(1,Math.hypot(player.vx,player.vy)/4.65);
+ const w=Math.min(W*.88,H*1.1,coarse?Math.min(W*.76,H*.48*art.w/art.h):Infinity),h=w*art.h/art.w,moving=settings.reduce?0:Math.min(1,Math.hypot(player.vx,player.vy)/4.65);
  const breath=settings.reduce?0:Math.sin(S4T.clock*2.1)*h*.005;
  const x=W/2+(settings.reduce?0:Math.sin(bob)*moving*2-sway*3),y=H+h*.02+breath+weaponDrop*h*1.4+out*h*1.35;
  wc.save();wc.translate(x,y);if(!settings.reduce)wc.rotate(Math.sin(bob)*moving*.004);

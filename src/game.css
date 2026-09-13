@@ -269,3 +269,379 @@ body.creature-auditions .mvPreview,body.creature-gallery .mvPreview{display:none
 
 /* Public beta: no development or legacy audition entry. */
 body.beta.nav-hud #startTest,body.beta.nav-hud #pauseTest,body.beta.nav-hud #reviewBar,body.beta.nav-hud #reviewPanelBtn,body.beta.nav-hud #testWard,body.beta.nav-hud .mvPreview{display:none!important}
+
+/* Mobile beta: one visible viewport for the scene, HUD and modal surfaces.
+   The viewport controller supplies pixel values when browser chrome changes. */
+:root {
+ --game-width:100vw;
+ --game-height:100vh;
+ --game-left:0px;
+ --game-top:0px;
+ --safe-top:env(safe-area-inset-top,0px);
+ --safe-right:env(safe-area-inset-right,0px);
+ --safe-bottom:env(safe-area-inset-bottom,0px);
+ --safe-left:env(safe-area-inset-left,0px);
+}
+@supports(height:100dvh) { :root { --game-height:100dvh; } }
+html,body { overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body { touch-action:auto; -webkit-user-select:none; user-select:none; }
+#game,#hud,#touch,#grain,#shade,.overlay {
+ position:fixed;
+ inset:auto;
+ left:var(--game-left);
+ top:var(--game-top);
+ width:var(--game-width);
+ height:var(--game-height);
+}
+#game,#touch,#touch * {
+ touch-action:none;
+ -webkit-touch-callout:none;
+ -webkit-user-select:none;
+ user-select:none;
+ -webkit-tap-highlight-color:transparent;
+}
+#game { -webkit-user-drag:none; }
+.overlay {
+ min-height:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ touch-action:pan-y;
+ -webkit-overflow-scrolling:touch;
+}
+.overlay input,.overlay select,.overlay textarea,.overlay button,.overlay a,.overlay summary { touch-action:manipulation; }
+.overlay textarea { -webkit-user-select:text; user-select:text; touch-action:auto; }
+body.touch-device .touchOnly { display:block; }
+body.touch-device .desktopOnly,body.touch-device .controls,body.touch-device #help { display:none!important; }
+body.touch-device {
+ --touch-edge:12px;
+ --touch-size:50px;
+ --touch-fire:68px;
+ --touch-gap:8px;
+ --stick-size:112px;
+ --touch-width:calc(var(--touch-size)*2 + var(--touch-fire) + var(--touch-gap)*2);
+ --control-bottom:calc(var(--safe-bottom) + 48px);
+ --hud-top:calc(var(--safe-top) + 10px);
+}
+body.touch-device.boss-fight { --hud-top:calc(var(--safe-top) + 42px); }
+body.touch-device #hud,body.touch-device.nav-hud.testing #hud,
+body.touch-device.nav-hud.boss-fight #hud,body.touch-device.nav-hud.testing.boss-fight #hud {
+ padding:var(--hud-top) calc(var(--safe-right) + var(--touch-edge)) 0 calc(var(--safe-left) + var(--touch-edge));
+ text-shadow:0 1px 3px #000,0 0 6px #0008;
+}
+body.touch-device.nav-hud #top {
+ grid-template-columns:minmax(0,1fr) clamp(142px,23vw,200px) 96px;
+ gap:8px;
+}
+body.touch-device #objectiveBlock>.label,body.touch-device #scorebox { display:none; }
+body.touch-device.nav-hud #objectiveBlock { max-width:340px; }
+body.touch-device .ward { font-size:12px; line-height:1.2; letter-spacing:.3px; }
+body.touch-device #goal { font-size:11px; line-height:1.3; margin-top:4px; }
+body.touch-device #fvStatus,body.touch-device #wfSystems {
+ font-size:10px;
+ line-height:1.25;
+ margin-top:3px;
+}
+body.touch-device #questInventory { font-size:9px; line-height:1.2; gap:3px 8px; margin-top:4px; }
+body.touch-device.nav-hud #compass {
+ grid-column:2;
+ grid-row:1;
+ width:100%;
+ height:auto;
+ min-height:44px;
+ gap:7px;
+ padding:6px 8px;
+ background:#0b171dd9;
+ border-radius:6px;
+}
+body.touch-device.nav-hud #navGlyph { width:22px; height:26px; flex-basis:22px; }
+body.touch-device.nav-hud #navGlyph svg { width:22px; height:22px; }
+body.touch-device.nav-hud #compassText { font-size:11px; line-height:1.2; white-space:normal; }
+body.touch-device.nav-hud #wfNavHint { font-size:10px; line-height:1.2; white-space:normal; }
+body.touch-device #stick {
+ left:calc(var(--safe-left) + var(--touch-edge));
+ bottom:var(--control-bottom);
+ width:var(--stick-size);
+ height:var(--stick-size);
+ border:1px solid #a4d9d461;
+ background:radial-gradient(circle,#11212845 42%,#11212820 43%,#11212850 100%);
+ box-shadow:inset 0 0 0 13px #06121918;
+}
+body.touch-device #stickKnob {
+ left:calc(50% - 21px);
+ top:calc(50% - 21px);
+ width:42px;
+ height:42px;
+ border:1px solid #b0e7ddae;
+ background:#a5e1d331;
+ box-shadow:0 1px 6px #0004;
+ pointer-events:none;
+}
+.stickGuide { position:absolute; inset:20%; border:1px dashed #b4e5dc28; border-radius:50%; pointer-events:none; }
+.stickLabel { position:absolute; left:0; right:0; bottom:9px; color:#d3e7df99; text-align:center; font:8px/1 Arial,sans-serif; letter-spacing:1.4px; pointer-events:none; }
+body.touch-device #touchBtns {
+ right:calc(var(--safe-right) + var(--touch-edge));
+ bottom:var(--control-bottom);
+ width:var(--touch-width);
+ display:grid;
+ grid-template-columns:var(--touch-size) var(--touch-size) var(--touch-fire);
+ grid-template-rows:var(--touch-size) var(--touch-size);
+ gap:var(--touch-gap);
+ pointer-events:none;
+}
+body.touch-device #touch button {
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:3px;
+ min-width:44px;
+ min-height:44px;
+ margin:0;
+ padding:5px 3px;
+ color:#e7ead5;
+ background:#10202991;
+ border:1px solid #b1cbc469;
+ border-radius:12px;
+ font:10px/1.1 Arial,sans-serif;
+ font-weight:600;
+ letter-spacing:.25px;
+ text-shadow:0 1px 3px #000;
+ box-shadow:0 2px 8px #0002;
+ pointer-events:auto;
+ transform:none;
+ transition:background-color .08s,border-color .08s,box-shadow .08s;
+}
+body.touch-device #touch button svg {
+ width:21px;
+ height:21px;
+ fill:none;
+ stroke:currentColor;
+ stroke-width:1.8;
+ stroke-linecap:round;
+ stroke-linejoin:round;
+ pointer-events:none;
+}
+body.touch-device #touch button .touchLabel { pointer-events:none; }
+body.touch-device #touch button.is-pressed {
+ background:#547876b8;
+ border-color:#d5f3dc;
+ box-shadow:inset 0 0 0 1px #e9ffe060,0 0 15px #a1e5df22;
+}
+body.touch-device #touch button:focus-visible { outline:2px solid #d5ffe6; outline-offset:2px; }
+body.touch-device #touchMelee { grid-column:1; grid-row:1; }
+body.touch-device #touchDash { grid-column:2; grid-row:1; }
+body.touch-device #touchReload { grid-column:1; grid-row:2; }
+body.touch-device #touchGun { grid-column:2; grid-row:2; }
+body.touch-device #touchFire {
+ grid-column:3;
+ grid-row:1/3;
+ border-radius:34px;
+ border-color:#d5ff428c!important;
+ color:#e2ff8d!important;
+ background:#293a1994;
+ gap:9px;
+}
+body.touch-device #touchFire svg { width:30px; height:30px; stroke-width:1.5; }
+body.touch-device #touchFire.is-pressed { background:#5b6e25c2; border-color:#e4ff8d!important; }
+body.touch-device #touchUse {
+ position:absolute;
+ left:50%;
+ bottom:calc(var(--safe-bottom) + 51px);
+ transform:translateX(-50%);
+ width:auto;
+ min-width:86px;
+ height:48px;
+ padding:6px 14px;
+ flex-direction:row;
+ gap:7px;
+ border-color:#a3e7d8!important;
+ color:#dcfff1!important;
+ background:#123e3bd9;
+ border-radius:24px;
+ font-size:11px;
+}
+body.touch-device #touchUtilities {
+ position:absolute;
+ right:calc(var(--safe-right) + var(--touch-edge));
+ top:var(--hud-top);
+ display:flex;
+ gap:8px;
+ pointer-events:none;
+}
+body.touch-device #touchMap,body.touch-device #touchPause,
+body.touch-device.testing #touchMap,body.touch-device.testing #touchPause {
+ position:static;
+ top:auto!important;
+ bottom:auto!important;
+ width:44px;
+ height:44px;
+ border-radius:8px;
+ font-size:8px;
+ background:#102029ad;
+}
+body.touch-device #touchUtilities svg { width:19px; height:19px; }
+body.touch-device #bottom,body.touch-device.nav-hud.testing #bottom,
+body.touch-device.testing.boss-fight #bottom {
+ left:calc(var(--safe-left) + var(--touch-edge));
+ right:calc(var(--safe-right) + var(--touch-edge));
+ bottom:calc(var(--safe-bottom) + 8px);
+ height:32px;
+ align-items:center;
+ gap:12px;
+}
+body.touch-device #lifeBlock {
+ display:grid;
+ grid-template-columns:42px 66px;
+ grid-template-rows:14px 10px;
+ column-gap:7px;
+ width:115px;
+ max-width:none;
+}
+body.touch-device #lifeBlock>.label { grid-column:2; grid-row:1; font-size:8px; letter-spacing:.5px; align-self:end; }
+body.touch-device #lifeLabel { grid-column:1; grid-row:1/3; align-self:center; }
+body.touch-device #life { font-size:28px; letter-spacing:-1px; line-height:1; }
+body.touch-device #lifeTrack { grid-column:2; grid-row:2; height:4px; margin-top:4px; }
+body.touch-device #lifeHint,body.touch-device #dashLabel,body.touch-device #armory { display:none; }
+body.touch-device #weaponBlock,body.touch-device.seraphim-held #weaponBlock {
+ display:flex;
+ flex-direction:row;
+ align-items:center;
+ gap:8px;
+ max-width:155px;
+ min-width:0;
+}
+body.touch-device #weaponName,body.touch-device.seraphim-held #weaponName {
+ font-size:9px;
+ line-height:1.25;
+ letter-spacing:.4px;
+ margin:0;
+ max-width:82px;
+ overflow-wrap:anywhere;
+}
+body.touch-device #ammoLine { font-size:27px; line-height:1; white-space:nowrap; }
+body.touch-device #reserve { font-size:10px; }
+body.touch-device #interactPrompt {
+ left:calc(var(--safe-left) + var(--touch-edge) + 123px);
+ right:calc(var(--safe-right) + var(--touch-edge) + 162px);
+ bottom:calc(var(--safe-bottom) + 6px);
+ width:auto;
+ min-width:0;
+ transform:none;
+ padding:5px 7px;
+ border-left:0;
+ border-top:1px solid #8dc8b77d;
+ background:#0c191ecd;
+ border-radius:4px;
+}
+body.touch-device #interactAction { font-size:10px; line-height:1.3; letter-spacing:0; }
+body.touch-device #interactHint { font-size:9px; line-height:1.3; margin-top:3px; }
+body.touch-device #message,body.touch-device.nav-hud.boss-fight #message {
+ top:calc(var(--hud-top) + 65px);
+ width:64%;
+ font-size:16px;
+ line-height:1.2;
+ transform:translateX(-50%);
+}
+body.touch-device #feed { top:calc(var(--hud-top) + 74px); left:calc(var(--safe-left) + var(--touch-edge)); max-width:140px; font-size:10px; line-height:1.4; }
+body.touch-device #comboWrap { right:calc(var(--safe-right) + var(--touch-edge)); top:calc(var(--hud-top) + 57px); }
+body.touch-device #combo { font-size:26px; letter-spacing:-1px; }
+body.touch-device #comboText { font-size:8px; letter-spacing:1px; }
+body.touch-device #comboTrack { margin-top:4px; }
+body.touch-device #map,body.touch-device.testing #map,body.touch-device.boss-fight #map {
+ top:auto!important;
+ left:calc(var(--game-left) + var(--safe-left) + var(--touch-edge));
+ bottom:calc(100% - var(--game-top) - var(--game-height) + var(--control-bottom) + var(--stick-size) + 8px);
+ width:72px;
+ height:72px;
+ opacity:.75;
+}
+body.touch-device #bossHud {
+ position:absolute;
+ top:0;
+ left:0;
+ width:100%;
+ height:calc(var(--safe-top) + 32px);
+ padding:calc(var(--safe-top) + 5px) calc(var(--safe-right) + 12px) 5px calc(var(--safe-left) + 12px);
+ grid-template-columns:110px minmax(30px,1fr) 40px;
+ grid-template-rows:22px;
+ gap:8px;
+}
+body.touch-device .bossHeading strong { font-size:11px; letter-spacing:.8px; }
+body.touch-device #bossState { display:none; }
+body.touch-device #bossHealth { grid-row:1; font-size:12px; }
+body.touch-device #bossMeter { grid-row:1; height:11px; }
+body.touch-device #sequenceControls {
+ left:calc(var(--game-left) + var(--safe-left) + 12px);
+ right:auto;
+ top:calc(var(--game-top) + var(--game-height) - var(--safe-bottom) - 64px);
+ bottom:auto;
+ width:calc(var(--game-width) - var(--safe-left) - var(--safe-right) - 24px);
+ font-size:10px;
+ letter-spacing:.6px;
+}
+body.touch-device #sequenceSkip { flex-shrink:0; min-height:44px; }
+body.touch-device.departure #touchUse,body.touch-device.departure #touchMap { visibility:hidden; pointer-events:none; }
+body.touch-device .overlay,body.touch-device #mapPanel,body.touch-device #testWard,
+body.touch-device #creatureAudition,body.touch-device #cgCreditsOverlay {
+ padding:calc(var(--safe-top) + 18px) calc(var(--safe-right) + 22px) calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 22px);
+}
+body.touch-device .menu,body.touch-device .smallPanel { flex-shrink:0; }
+body.touch-device .overlay button,body.touch-device .overlay summary { min-height:44px; }
+body.touch-device #wfMapClose,body.touch-device #wfDestinations button { min-height:44px; }
+body.touch-device .modeRow { gap:8px; }
+body.touch-device .mode { min-height:44px; }
+body.touch-device .setting { min-height:44px; margin:7px 0; }
+body.touch-device .setting input[type=range] { min-height:44px; touch-action:pan-y; }
+body.touch-device .setting select,body.touch-device .setting input[type=number],body.touch-device .betaFeedback textarea { font-size:16px!important; }
+body.touch-device #touchFullscreen { margin-left:12px; }
+#mobileRotateHint { display:none; }
+body.touch-device #mobileRotateHint { display:none; }
+#mobileRotateHint svg { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.5; flex-shrink:0; }
+
+@media(max-height:450px) and (orientation:landscape) {
+ body.touch-device { --touch-size:44px; --touch-fire:60px; --touch-gap:8px; --stick-size:104px; --hud-top:calc(var(--safe-top) + 8px); }
+ body.touch-device.boss-fight { --hud-top:calc(var(--safe-top) + 38px); }
+ body.touch-device .ward { font-size:11px; }
+ body.touch-device #goal { font-size:10px; }
+ body.touch-device #fvStatus,body.touch-device #wfSystems { font-size:9px; }
+ body.touch-device.nav-hud #compassText { font-size:10px; }
+ body.touch-device.nav-hud #wfNavHint { font-size:9px; }
+ body.touch-device #touch button { font-size:8px; }
+ body.touch-device #touchFire { font-size:10px; }
+ body.touch-device #touchUse { font-size:11px; }
+ body.touch-device #interactHint { display:none; }
+ body.touch-device #message,body.touch-device.nav-hud.boss-fight #message { top:calc(var(--hud-top) + 57px); font-size:14px; }
+ body.touch-device #feed { max-width:min(240px,40vw); font-size:10px; line-height:1.4; }
+ body.touch-device #start .menu { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 28px; }
+ body.touch-device #start .micro,body.touch-device #start h1,body.touch-device #start .subtitle,body.touch-device #start .intro:not(.touchOnly) { grid-column:1; }
+ body.touch-device #start h1 { font-size:clamp(58px,12vw,100px); margin-top:12px; }
+ body.touch-device #start .subtitle { font-size:25px; letter-spacing:5px; margin:10px 0 18px; }
+ body.touch-device #start .intro { font-size:12px; line-height:1.5; }
+ body.touch-device #start .touchOnly.intro { grid-column:2; grid-row:1/3; align-self:start; margin:0 0 10px; }
+ body.touch-device #start .modeRow { grid-column:2; grid-row:3; align-self:start; margin:0; }
+ body.touch-device #start .modeRow .label { flex-basis:100%; font-size:10px; }
+ body.touch-device #start .mode { font-size:10px; padding:8px; min-height:44px; }
+ body.touch-device #start #startBtn { grid-column:2; grid-row:4; align-self:start; margin:15px 6px 3px 0; width:max-content; max-width:100%; }
+ body.touch-device #start #startSettings { grid-column:2; justify-self:start; margin-top:12px; }
+ body.touch-device #start .betaGuide,body.touch-device #start .note,body.touch-device #start #error { grid-column:1/-1; }
+ body.touch-device .stamp { display:none; }
+}
+@media(orientation:portrait) {
+ body.touch-device { --touch-size:46px; --touch-fire:60px; --touch-gap:7px; --stick-size:104px; --touch-edge:10px; }
+ body.touch-device.nav-hud #top { grid-template-columns:minmax(0,1fr) 96px; gap:10px; }
+ body.touch-device.nav-hud #objectiveBlock { grid-column:1; padding-right:3px; }
+ body.touch-device.nav-hud #compass { grid-column:1; grid-row:2; width:min(220px,100%); justify-self:start; }
+ body.touch-device #touchUse { bottom:calc(var(--control-bottom) + var(--touch-size)*2 + var(--touch-gap) + 12px); }
+ body.touch-device #interactPrompt { left:50%; right:auto; transform:translateX(-50%); bottom:calc(var(--control-bottom) + var(--touch-size)*2 + var(--touch-gap) + 70px); width:min(300px,calc(100% - 36px)); }
+ body.touch-device #map,body.touch-device.testing #map,body.touch-device.boss-fight #map { width:64px; height:64px; }
+ body.touch-device #mobileRotateHint { display:flex; align-items:center; gap:10px; font:12px/1.45 Arial,sans-serif; color:#c3d7ca; background:#102129bd; border-left:2px solid #8bc2b5; padding:10px 12px; margin:0 0 18px; max-width:400px; }
+ body.touch-device #message,body.touch-device.nav-hud.boss-fight #message { top:calc(var(--hud-top) + 145px); width:84%; }
+ body.touch-device #feed { top:calc(var(--hud-top) + 170px); }
+ body.touch-device .setting { gap:12px; font-size:13px; }
+ body.touch-device .setting input[type=range] { width:135px; }
+ body.touch-device .overlay { padding-left:calc(var(--safe-left) + 20px); padding-right:calc(var(--safe-right) + 20px); }
+}
+@media(prefers-reduced-motion:reduce) {
+ body.touch-device #touch button { transition:none; }
+}

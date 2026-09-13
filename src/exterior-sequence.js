@@ -21,7 +21,7 @@ function s4dReset(){
  document.body.classList.remove('departure');$('sequenceControls').classList.add('hidden');
  audio.departureStop?.();s4qReset();s4tReset();cbReset();$('compassArrow').style.visibility='visible';
 }
-function s4dPhase(phase){S4D.phase=phase;S4D.t=0;s4dHud();}
+function s4dPhase(phase){S4D.phase=phase;S4D.t=0;hudClock=0;}
 function s4dBeginWalk(){
  if(S4D.on)return false;
  Object.assign(S4D,{on:true,carry:s4dCapture(),origin:{x:player.x,y:player.y,a:player.a},clock:0});
@@ -100,7 +100,7 @@ function s4dRestore(){
  s4dPlaceWreck();if(c.quest){Object.assign(S4Q,c.quest,{visited:[...c.quest.visited],action:null});s4qApplyGate();s4qApplyVehicle();if(S4Q.moved)S4D.door=0;}S4.visited=new Set(c.visited||[]);reviewPlace(c.x,c.y,c.a);enemies=c.enemies.map(e=>({...e}));drops=c.drops.map(d=>({...d}));decals=c.decals.map(d=>({...d}));
  stageKills=c.stageKills;stageTime=c.stageTime;enemyId=c.enemyId;S4.entry=c.entry;
  mode='playing';document.body.classList.add('playing');$('hud').classList.remove('hidden');$('touch').classList.remove('hidden');
- review.done=c.quest?c.quest.done:c.phase==='aftermath';audio.start();hudUpdate();s4dHud();lockPointer();feed(c.quest?c.quest.checkpointLabel+' · CHECKPOINT':'COURTYARD CHECKPOINT');return true;
+ review.done=c.quest?c.quest.done:c.phase==='aftermath';audio.start();hudUpdate();lockPointer();feed(c.quest?c.quest.checkpointLabel+' · CHECKPOINT':'COURTYARD CHECKPOINT');return true;
 }
 function s4dSpawn(actor,index){
  // The emerging body occupies a real safe cell at the doorway/cover edge.
@@ -145,7 +145,7 @@ function s4dTick(dt){
  }
  s4qTick(dt);
  if(s4dLocked()){_safeX=player.x;_safeY=player.y;msgT=feedT=0;shake*=Math.exp(-dt*9);updateEffects(dt);}
- s4dHud();
+ // The shared HUD pass runs after all simulation systems.
 }
 function s4dGunDip(){
  if(!s4dLocked())return 0;
@@ -154,6 +154,7 @@ function s4dGunDip(){
  return 1.35;
 }
 function s4dHud(){
+ if(!hudComposing){hudUpdate();return;}
  const locked=s4dLocked();document.body.classList.toggle('departure',locked);
  $('sequenceControls').classList.toggle('hidden',!locked||mode!=='playing');
  if(!S4D.on)return;
@@ -169,17 +170,20 @@ function s4dHud(){
  }else if(S4D.phase==='aftermath'){
   $('goal').textContent='GARDEN BLOCKED · EXPLORE PARKING / BUS ROAD';$('lifeHint').textContent='TAKE A BREATH';
  }
- const nearWreck=!S4Q.on&&S4D.crashed&&Math.hypot(player.x-61.5,player.y-43)<3;
- if(nearWreck&&!locked){$('touchUse').classList.remove('hidden');$('touchUse').textContent='EXAMINE';}
+ const nearWreck=s4dWreckNear();
+ if(nearWreck&&!locked){$('touchUse').classList.remove('hidden');touchSetLabel('touchUse','EXAMINE');}
  if(review.active){
   $('reviewBarText').textContent='NO WAY OUT · '+(locked?'DISCHARGE INTERRUPTED':S4D.phase==='fight'?'COURTYARD AMBUSH':'COURTYARD CLEAR');
   $('reviewStatus').textContent=locked?'ENTER / SKIP · ESC PAUSE · T CONTROLS':S4D.phase==='aftermath'?'PHASE 2 COMPLETE · T REVIEW · B REPLAY':'T CONTROLS · B REPLAY · '+(review.ai?'AI ON':'AI OFF')+' / '+(review.damage?'DAMAGE ON':'PROTECTED');
  }
  s4qHud();
 }
+function s4dWreckNear(){
+ return mode==='playing'&&s4Running()&&S4D.on&&!S4Q.on&&!s4dLocked()&&S4D.crashed&&s4qCanReach({x:61.5,y:43},3,.9);
+}
 function s4dInteract(){
  if(S4Q.on)return s4qInteract();
- if(!S4D.on||s4dLocked()||!S4D.crashed||Math.hypot(player.x-61.5,player.y-43)>=3)return false;
+ if(!s4dWreckNear())return false;
  feed('BURNING. THE GARDEN PATH IS BLOCKED.\n'+(review.active?'Moving the wreck is the next development phase.':'Find another way through the grounds.'));return true;
 }
 function s4dReview(scene){

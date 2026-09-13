@@ -10,16 +10,20 @@ function wfText(c,text,x,y,width,size,color='#e0e1c8',align='left'){
 function wfSignLines(label){
  return String(label||'WARD').replace(/W[‑–]0/g,'W-0').trim().split(/\s*\/\s*|\s{2,}/).filter(Boolean).slice(0,3);
 }
+function wfExitReady(p){
+ return p.wfExit==='security'?CH.power:p.wfExit==='airlock'?!FV.sealed:false;
+}
 function wfSignTexture(p){
- let label=p.label;
+ const exitReady=!!p.wfExit&&wfExitReady(p);
+ let label=exitReady&&p.readyLabel?p.readyLabel:p.label;
  if(chRunning()&&label==='NO POWER')label=CH.power?'MAINS ONLINE / SECURITY OPEN':'MAINS OFFLINE / PLANT HALL';
- const lines=wfSignLines(label),arch=p.kind==='arch',small=/^W[-‑–]0\d$|^BAY \d$/.test(label),key='sign:'+arch+':'+lines.join('|');
+ const lines=wfSignLines(label),arch=p.kind==='arch',small=/^W[-‑–]0\d$|^BAY \d$/.test(label),key='sign:'+arch+':'+exitReady+':'+lines.join('|');
  if(WF_SIGN_CACHE.has(key))return WF_SIGN_CACHE.get(key);
  const img=document.createElement('canvas');img.width=small?384:768;img.height=arch?54:small?132:lines.length>1?146:114;
  const c=img.getContext('2d'),h=img.height,w=img.width;
  c.fillStyle='#111f21';c.fillRect(0,0,w,img.height);
- c.fillStyle='#74817a';c.fillRect(2,2,w-4,img.height-4);c.fillStyle='#283e3d';c.fillRect(5,5,w-10,img.height-10);
- const tint=/POWER|PLANT|HV/.test(label)?'#ae9871':/OR |PURGE|STERILE|THEATRE/.test(label)?'#879b96':'#9ca99b';
+ c.fillStyle=exitReady?'#8dbab0':'#74817a';c.fillRect(2,2,w-4,img.height-4);c.fillStyle=exitReady?'#183b35':'#283e3d';c.fillRect(5,5,w-10,img.height-10);
+ const tint=exitReady?'#b7e4c5':/POWER|PLANT|HV/.test(label)?'#ae9871':/OR |PURGE|STERILE|THEATRE/.test(label)?'#879b96':'#9ca99b';
  c.fillStyle=tint;c.fillRect(12,12,5,h-24);
  c.fillStyle='#bfc2ac20';c.fillRect(18,7,w-38,2);
  for(const x of [28,w-28])for(const y of [18,h-18]){
@@ -28,7 +32,7 @@ function wfSignTexture(p){
  // Fixed stains, not per-frame noise; the lettering stays clean and legible.
  c.fillStyle='#00000016';for(let i=0;i<22;i++)c.fillRect((i*113+21)%w,(i*37)%h,3+(i%11),1);
  const texts=arch?[lines.join(' · ')]:lines;
- texts.forEach((text,i)=>wfText(c,text,arch||small?w/2:52,(i+.5)*h/texts.length,w-100,arch?34:small?62:lines.length>1?42:59,undefined,arch||small?'center':'left'));
+ texts.forEach((text,i)=>wfText(c,text,arch||small?w/2:52,(i+.5)*h/texts.length,w-100,arch?34:small?62:lines.length>1?42:59,exitReady?'#d4f3d8':undefined,arch||small?'center':'left'));
  WF_SIGN_CACHE.set(key,img);return img;
 }
 function wfSignFace(p){
@@ -141,4 +145,3 @@ const WF_ADMISSIONS_PROPS=[
  {kind:'sign',x:56.88,y:7.2,a:-Math.PI/2,label:'MAINS SWITCH / SECURITY INTERLOCK'}
 ];
 function wfExtraProps(){return chRunning()&&!wfUncharted()?WF_ADMISSIONS_PROPS:[];}
-

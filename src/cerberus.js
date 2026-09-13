@@ -228,6 +228,7 @@ function cbReview(scene){
  msgT=feedT=0;cbSave();hudUpdate();audio.levels();
 }
 function cbHud(){
+ if(!hudComposing){hudUpdate();return;}
  if(!cbRunning())return;
  if(cbfHud())return;
  const visible=mode!=='menu',pct=CB.hp/CB_MAX*100;

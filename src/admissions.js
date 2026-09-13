@@ -152,9 +152,12 @@ function chSetupEnvironment(){
     add('bed',x,59.5,0,{seed:seed++});
     add('curtain',x+1.2,58.9,0,{seed:seed++});
   }
-  add('sign',16.03,55,Math.PI/2,{label:'WAITING'});
+  // Mount beside the opening, on its exposed reception wall. The old WAITING
+  // plaque occupied the doorway and obscured which alcove was the way out.
+  add('sign',16.055,53,Math.PI/2,{nx:1,ny:0,z:.8,w:1.65,h:.32,
+    label:'SECURITY EXIT / POWER REQUIRED',readyLabel:'SECURITY EXIT / OPEN',wfExit:'security'});
   add('sign',36.97,52,-Math.PI/2,{label:'NO POWER'});
-  add('arch',15.5,55,Math.PI/2,{label:'SECURITY'});
+  add('arch',15.5,55,Math.PI/2,{label:'SECURITY',readyLabel:'EXIT · FEVER THEATRE',wfExit:'security'});
 
   // plant hall: switchgear along the back wall, pipework overhead
   for(let x=38;x<=54;x+=3)add('monitor',x,4.5,0);
@@ -182,6 +185,7 @@ function chSetLights(){
   const B=dim?[.26,.28,.36]:[.80,.86,.84];       // circulation
   const C=dim?[.30,.56,.60]:[.44,.88,.92];       // service
   L(26,55,A); L(20,57,A); L(32,57,A);
+  if(CH.power)L(16.6,55.5,[.62,.91,.74]); // steady pool at the released exit
   L(26,46,B); L(26,36,B);      // nothing at y40-42: the gate mouth stays black
   L(10,32,B); L(26,32,B); L(42,32,B);
   L(10,40,B); L(16,44,B);
@@ -901,4 +905,3 @@ audio.tension=function(level){
   const t=this.ctx.currentTime;
   this.musicBed.gain.setTargetAtTime(hbVictory()?0:level?1:.26,t,level?.25:.9);
 };
-

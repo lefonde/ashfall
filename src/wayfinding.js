@@ -2,7 +2,7 @@
 // Navigation ignores creatures. It never owns quest state or changes collision.
 const WF_BREAKER={x:56.86,y:9,id:'mains',label:'Plant Hall',nx:-1,ny:0};
 const WF={map:null,key:'',open:null,edges:null,field:null,targetKey:'',selected:'',path:[],
- seen:null,cell:-1,at:-1,routeBuilds:0,gridBuilds:0,wasUncharted:false};
+ seen:null,cell:-1,at:-1,navTarget:'',navArrow:'',routeBuilds:0,gridBuilds:0,wasUncharted:false};
 function wfUncharted(){return !!(CH.maze||CH.tr||liminal.mode||hgInside());}
 function wfTopologyKey(){return [stage,useChapter,CH.power,FV.closed,FV.returnOpen,
  HW.resolved,HB.state,S4Q.moved,S4Q.gate,CB.rewarded,S4D.phase].join('|');}
@@ -33,9 +33,9 @@ function wfSync(){
 }
 function wfTargets(){
  if(wfUncharted()||s4dLocked())return [];
- if(chRunning())return [CH.power?{...exit,id:'security',label:'Security door'}:{...WF_BREAKER}];
+ if(chRunning())return [CH.power?{...exit,id:'security',label:'Security exit'}:{...WF_BREAKER}];
  if(fvRunning()){
-  if(FV.closed>=3)return [{...exit,id:'airlock',label:'Exit airlock'}];
+  if(FV.closed>=3)return [{...exit,id:'airlock',label:'Airlock exit'}];
   return FV.valves.filter(v=>!v.closed&&!(v.id==='OR3'&&FV.purgeT>0))
    .map(v=>({x:v.x,y:v.y-1.38,id:v.id,label:{OR1:'OR 1 · Power',OR2:'OR 2 · Vent',OR3:'OR 3 · Purge'}[v.id]}));
  }
@@ -130,18 +130,35 @@ function chInteract(){
  if(CH.power){feed('MAINS ONLINE / SECURITY DOOR RELEASED');return true;}
  chRestorePower();wfSync();hudUpdate();return true;
 }
+// A small angular dead band stops direction labels chattering at a threshold.
+function wfDirection(target,bearing){
+ const previous=WF.navTarget===target?.id?WF.navArrow:'';
+ let symbol='·';
+ if(bearing?.near)symbol='◇';
+ else if(bearing){
+  const a=bearing.angle,abs=Math.abs(a);
+  if(previous==='↶'&&abs>2.37)symbol='↶';
+  else if(abs>2.53)symbol='↶';
+  else if(previous==='↑'&&abs<.46)symbol='↑';
+  else if(previous==='‹'&&a<-.30&&a>-2.53)symbol='‹';
+  else if(previous==='›'&&a>.30&&a<2.53)symbol='›';
+  else symbol=abs>2.45?'↶':a<-.38?'‹':a>.38?'›':'↑';
+ }
+ WF.navTarget=target?.id||'';WF.navArrow=symbol;return symbol;
+}
 function wfHud(){
  wfSync();const target=wfTarget(),bearing=mode==='playing'?wfBearing(target):null;
  const arrow=$('compassArrow'),label=$('compassText');
  arrow.style.transform='none';arrow.style.visibility='visible';
  $('compass').classList.toggle('hidden',!target||mode!=='playing'||wfUncharted());
  if(target){
-  arrow.textContent=!bearing?'·':bearing.near?'◇':Math.abs(bearing.angle)>2.45?'↶':bearing.angle<-.38?'‹':bearing.angle>.38?'›':'↑';
+  arrow.textContent=wfDirection(target,bearing);
   label.textContent=target.label;
-  $('compass').setAttribute('aria-label',target.label+': '+(!bearing?'follow the signs':bearing.near?'nearby':Math.abs(bearing.angle)>2.45?'turn around':bearing.angle<-.38?'turn left':bearing.angle>.38?'turn right':'ahead'));
-  $('wfNavHint').textContent=!bearing?'FOLLOW SIGNS':bearing.near?'NEARBY':
-   Math.abs(bearing.angle)>2.45?'TURN AROUND':bearing.angle<-.38?'TURN LEFT':bearing.angle>.38?'TURN RIGHT':'AHEAD';
+  const hint={'·':'FOLLOW SIGNS','◇':'NEARBY','↶':'TURN AROUND','‹':'TURN LEFT','›':'TURN RIGHT','↑':'AHEAD'}[arrow.textContent];
+  $('compass').setAttribute('aria-label',target.label+': '+hint.toLowerCase());
+  $('wfNavHint').textContent=hint;
  }
+ if(!target){WF.navTarget='';WF.navArrow='';}
  if(chRunning()&&!wfUncharted()){
   $('fvStatus').classList.remove('hidden');
   $('fvStatus').textContent=CH.power?'Service return is open. Leave through Security.':'Ward 1 → Service Riser → Plant Hall';
@@ -149,7 +166,7 @@ function wfHud(){
   if(near){
    $('interactAction').textContent=CH.power?'MAINS · ONLINE':(coarse?'USE · ':'[E] ')+'RESTORE MAINS POWER';
    $('interactHint').textContent=CH.power?'Security is unlocked. Take the service return.':'Releases the Security door and opens the service return.';
-   $('interactPrompt').style.borderColor='#bbab7b';$('touchUse').textContent=CH.power?'ONLINE':'POWER';
+   $('interactPrompt').style.borderColor='#bbab7b';touchSetLabel('touchUse',CH.power?'ONLINE':'POWER');
   }
  }
  if(fvRunning()){

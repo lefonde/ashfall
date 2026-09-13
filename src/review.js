@@ -185,13 +185,14 @@ function reviewTick(dt){
 }
 function chBannerTick(){}
 function reviewHud(){
+ if(!hudComposing){hudUpdate();return;}
  if(!review.active)return;
  const flags=[review.ai?'AI ON':'AI OFF',review.damage?'DAMAGE ON':'PROTECTED',review.unlimited?'AMMO REFILL':'FINITE AMMO'];
  $('reviewBarText').textContent=reviewScenes[review.scene].label+' · '+flags.join(' / ');
  $('reviewStatus').textContent=review.done?'SCENE COMPLETE · B TO REPEAT':'T CONTROLS · B RESET · H PAIN PREVIEW'+(reviewFixture()?' · N TARGETS':useChapter?' · N REPEAT SCENE':'');
  $('reviewDiagnostics').textContent=BUILD.id+' | '+review.scene+' | '+mode+' / '+(liminal.mode||'ward')+' | '+player.x.toFixed(2)+', '+player.y.toFixed(2)+' | '+enemies.filter(e=>e.alive).length+' alive | '+bullets.length+' projectiles';
  $('scoreLabel').textContent='TEST SCORE · NOT SAVED';
- if(s4tRunning())s4tHud();if(cbRunning())cbHud();
+ // Scene HUDs are composed later by hudUpdate, in narrative priority order.
 }
 function reviewOpenExit(){
  if(!review.active||s4Running())return;

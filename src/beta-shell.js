@@ -19,6 +19,8 @@
    'ASHFALL // NEON WARD — BETA '+BUILD.version,
    'Browser: '+browser,
    'Window: '+innerWidth+' × '+innerHeight,
+   'Visible viewport: '+gameViewport.width+' × '+gameViewport.height,
+   'Touch controls: '+(coarse?'yes':'no'),
    'Chapter: '+(stage+1)+' / '+(s4Running()?'No Way Out':wardNames[stage]||'Menu'),
    'Objective: '+$('goal').textContent,
    'Position: '+player.x.toFixed(2)+', '+player.y.toFixed(2),

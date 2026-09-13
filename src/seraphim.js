@@ -13,7 +13,7 @@ function equippedItem(){return weapon===3?S4T_ITEM:guns[weapon];}
 function s4tReset(){
  if(weapon===3)weapon=S4T.previousGun;
  Object.assign(S4T,s4tFresh());Object.assign(S4T_RUNTIME,{checkpoint:null,obstacles:[],nav:null});
- document.body.classList.remove('seraphim-held');$('slot3').classList.add('hidden');$('touchFire').textContent='FIRE';
+ document.body.classList.remove('seraphim-held');$('slot3').classList.add('hidden');touchSetLabel('touchFire','FIRE');
  audio.seraphimStop?.();
 }
 function s4tEquip(){
@@ -127,14 +127,15 @@ function s4tRestore(){
  releaseInputs();audio.seraphimStop();hudUpdate();feed('SERAPHIM CHECKPOINT · '+S4T.phase.toUpperCase());return true;
 }
 function s4tHud(){
+ if(!hudComposing){hudUpdate();return;}
  const on=s4tRunning(),held=s4tCarried(),selected=on&&weapon===3;
  $('slot3').classList.toggle('hidden',!held);$('slot3').classList.toggle('active',selected);
- document.body.classList.toggle('seraphim-held',selected);$('touchFire').textContent=selected?'THROW':'FIRE';
+ document.body.classList.toggle('seraphim-held',selected);touchSetLabel('touchFire',selected?'THROW':'FIRE');
  if(!on)return;
  const near=s4tNear();if(!cbRunning())$('lifeHint').textContent='PROTECTED';
- $('goal').textContent=near?'[E] LIFT THE WOUNDED SERAPHIM':held?(selected?'FIRE TO THROW · 1–3 GUNS':'4 TO HOLD THE SERAPHIM · ITS LIGHT FOLLOWS YOU'):S4T.phase==='airborne'?'FOLLOW THE FALLING LIGHT':S4T.phase==='water'?'WATER LANDED · REVIEW RETURN PENDING':'FOLLOW THE HOLY LIGHT';
+ $('goal').textContent=near?(coarse?'USE · ':'[E] ')+'LIFT THE WOUNDED SERAPHIM':held?(selected?(coarse?'FIRE TO THROW · GUN TO SWITCH':'FIRE TO THROW · 1–3 GUNS'):(coarse?'GUN TO SELECT THE SERAPHIM':'4 TO HOLD THE SERAPHIM · ITS LIGHT FOLLOWS YOU')):S4T.phase==='airborne'?'FOLLOW THE FALLING LIGHT':S4T.phase==='water'?'WATER LANDED · REVIEW RETURN PENDING':'FOLLOW THE HOLY LIGHT';
  if(selected){$('ammo').textContent='';$('reserve').textContent='';}
- $('touchUse').classList.toggle('hidden',!near&&!s4NearbyLabel());$('touchUse').textContent=near?'LIFT':'READ';
+ $('touchUse').classList.toggle('hidden',!near&&!s4NearbyLabel());touchSetLabel('touchUse',near?'LIFT':'READ');
  $('compassText').textContent=held?'CARRIED':S4T.phase==='water'?'IN THE WATER':'SERAPHIM';
  const dx=S4T.x-player.x,dy=S4T.y-player.y,d=Math.hypot(dx,dy);
  const visible=!held&&d>.2&&s4CastRay(player.x,player.y,dx/d,dy/d,d).d>=d-.15;

@@ -131,6 +131,6 @@ function wfRenderCorner(){
  const show=mode==='playing'&&(mapHeld||settings.map)&&!s4dLocked();
  $('map').classList.toggle('hidden',!show);if(show)wfDrawMap(mapCtx,150,150,true);
 }
-$('wfMapClose').onclick=wfCloseMap;$('touchMap').onclick=wfOpenMap;$('pauseMap').onclick=wfOpenMap;
+$('wfMapClose').onclick=wfCloseMap;$('pauseMap').onclick=wfOpenMap;
 addEventListener('resize',()=>{if(mode==='map')wfRefreshMap();});
 
