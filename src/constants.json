@@ -1,13 +1,12 @@
 {
   "BUILD": {
-    "id": "BETA-0.2.1",
-    "version": "0.2.1",
+    "id": "ashfall-beta-0.2.9",
+    "version": "0.2.9",
     "channel": "friends-beta",
-    "title": "Mobile Controls & HUD",
-    "release_date": "2026-09-13",
-    "parent": "ashfall-web-beta-0.2.0.zip",
-    "status": "Ready for mobile playtest",
-    "source_digest": "b34d6291523d",
+    "title": "The Lower Restrooms",
+    "release_date": "2026-09-14",
+    "parent": "ashfall-web-beta-0.2.8.zip",
+    "status": "Performance: continuous portals, bounded reflections, prepared crossings and cached navigation",
     "distribution": "github-pages",
     "baseline_standalone_sha256": "c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b"
   },

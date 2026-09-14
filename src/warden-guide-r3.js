@@ -1,91 +1,53 @@
-// A brief lead through the real opening, then a glimpse through the hallway wall.
-// Route progress is scalar so the established checkpoint copies remain valid.
-const WG_RADIUS=.85,WG_NORTH=4.15,WG_ARC=Math.PI*.5*WG_RADIUS;
-const WG_PATH=[[32.5,3.35],[33.35,2.5]];
-const WG_LENGTH=WG_NORTH+WG_ARC,WG_DEPARTURE=.8;
-function wgPoint(s){
- if(s<=WG_NORTH)return {x:32.5,y:7.5-s};
- if(s<WG_NORTH+WG_ARC){const a=Math.PI+(s-WG_NORTH)/WG_RADIUS;return {x:33.35+Math.cos(a)*WG_RADIUS,y:3.35+Math.sin(a)*WG_RADIUS};}
- return {x:33.35,y:2.5};
+// The existing post-Heart junction: right to discharge, left to downstairs.
+// The route is picked once. At its shadowed side corner the guide fades in place.
+const WG_RADIUS=.85,WG_NORTH=4.15,WG_ARC=Math.PI*.5*WG_RADIUS,WG_DEPARTURE=.48;
+function wgRoute(left){
+ const points=[[32.5,7.5],[32.5,3.35]];
+ for(let i=1;i<=12;i++){const a=(left?0:Math.PI)+(left?-1:1)*Math.PI*.5*i/12;points.push([(left?31.65:33.35)+Math.cos(a)*.85,3.35+Math.sin(a)*.85]);}
+ if(left){points.push([10,2.5],[6.7,1.48]);}else points.push([34.2,1.48]);
+ const lengths=[0];for(let i=1;i<points.length;i++)lengths.push(lengths[i-1]+Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]));
+ return {points,lengths,length:lengths[lengths.length-1]};
 }
-function wgPlayerProgress(){
- // Closest projection onto the actual rounded route. The first and last
- // straights extend past their ends, so approach/exit do not pin the pacing.
- const north=Math.min(7.5-player.y,WG_NORTH),ny=7.5-north;
- let best=(player.x-32.5)**2+(player.y-ny)**2,progress=north;
- let a=Math.atan2(player.y-3.35,player.x-33.35);if(a<0)a+=TAU;
- a=clamp(a,Math.PI,Math.PI*1.5);
- const cx=33.35+Math.cos(a)*WG_RADIUS,cy=3.35+Math.sin(a)*WG_RADIUS;
- const cd=(player.x-cx)**2+(player.y-cy)**2;
- if(cd<best){best=cd;progress=WG_NORTH+(a-Math.PI)*WG_RADIUS;}
- const east=Math.max(0,player.x-33.35),ed=(player.x-33.35-east)**2+(player.y-2.5)**2;
- if(ed<best)progress=WG_NORTH+WG_ARC+east;
+const WG_ROUTES={left:wgRoute(true),right:wgRoute(false)};
+function wgPath(w=HW.warden){return WG_ROUTES[w?.wgLeft?'left':'right'];}
+function wgPoint(s,w=HW.warden){
+ const r=wgPath(w);s=clamp(s,0,r.length);let i=1;while(i<r.lengths.length-1&&r.lengths[i]<s)i++;
+ const t=(s-r.lengths[i-1])/(r.lengths[i]-r.lengths[i-1]),a=r.points[i-1],b=r.points[i];return {x:mix(a[0],b[0],t),y:mix(a[1],b[1],t)};
+}
+function wgPlayerProgress(w=HW.warden){
+ const r=wgPath(w);let best=Infinity,progress=0;
+ for(let i=1;i<r.points.length;i++){const a=r.points[i-1],b=r.points[i],dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy),t=clamp(((player.x-a[0])*dx+(player.y-a[1])*dy)/(len*len),i===1?-10:0,i===r.points.length-1?10:1);
+  const d=(player.x-a[0]-dx*t)**2+(player.y-a[1]-dy*t)**2;if(d<best){best=d;progress=r.lengths[i-1]+t*len;}}
  return progress;
 }
 function wgPrime(w){
- w.wgGuide=true;w.wgStep=-1;w.wgT=0;w.wgSpeed=0;w.wgFade=1;w.wgGone=false;
- w.wgProgress=0;w.wgPlayerProgress=wgPlayerProgress();w.wgPlayerSpeed=0;w.wgWaiting=false;w.wgEntered=false;
+ w.wgLeft=typeof rsUnlocked==='function'&&rsUnlocked();w.wgGuide=true;w.wgStep=-1;w.wgT=0;w.wgSpeed=0;w.wgFade=1;w.wgGone=false;w.wgFading=false;
+ w.wgProgress=0;w.wgPlayerProgress=wgPlayerProgress(w);w.wgPlayerSpeed=0;w.wgWaiting=false;w.wgEntered=false;
 }
 const wgResolve=hwResolve;
-hwResolve=function(...args){
- const previous=HW.warden,result=wgResolve(...args),w=HW.warden;
- if(HW.resolved&&w&&w!==previous){wgPrime(w);hwSave();}
- return result;
-};
+hwResolve=function(...args){const previous=HW.warden,result=wgResolve(...args),w=HW.warden;if(HW.resolved&&w&&w!==previous){wgPrime(w);hwSave();}return result;};
 const wgPresence=wardenPresence;
-wardenPresence=function(e,d,time=gameTime){
- return wgPresence(e,d,time)*(e.wgGuide?(e.wgGone?0:clamp(e.wgFade,0,1)):1);
-};
+wardenPresence=function(e,d,time=gameTime){return wgPresence(e,d,time)*(e.wgGuide?(e.wgGone?0:clamp(e.wgFade,0,1)):1);};
 function wgTick(dt){
  const w=HW.warden;
  if(!hwRunning()||mode!=='playing'||player.hp<=0||HW.ending||!HW.resolved||HB.state!=='dead'||!w||!w.wgGuide||w.wgGone||!w.alive)return;
- dt=Math.min(Math.max(Number.isFinite(dt)?dt:0,0),.1);if(!dt)return;
- // Remember the actual crossing even if the player dashes away or turns back.
- // The upper corridor starts at row 3; standing in the crack is not entry.
- if(player.y<3.75&&player.y>1&&player.x>31.6&&player.x<37)w.wgEntered=true;
- if(w.wgStep===WG_PATH.length){
-  if(!w.wgEntered)return;
-  w.wgT=Math.min(WG_DEPARTURE,w.wgT+dt);const t=w.wgT/WG_DEPARTURE,u=t*t*(3-2*t);
-  // A short, continuous sideways slip into the nearby wall. Depth clipping
-  // hides the last trace; the selected breath fades through the same hook.
-  w.x=mix(33.35,33.9,u);w.y=mix(2.5,.65,u);w.wgFade=1-u;
-  if(t===1){w.wgGone=true;w.wgFade=0;w.wgSpeed=0;w.wgStep++;w.alive=false;w.death=0;}
+ dt=clamp(Number.isFinite(dt)?dt:0,0,.1);if(!dt)return;
+ if(player.y<3.75&&player.y>1)w.wgEntered=true;
+ const d=Math.hypot(w.x-player.x,w.y-player.y),path=wgPath(w);
+ if(w.wgProgress>=path.length){
+  if(w.wgEntered&&(d<4.8||(w.wgLeft?player.x<w.x:player.x>w.x)))w.wgFading=true;
+  if(w.wgFading){w.wgT=Math.min(WG_DEPARTURE,w.wgT+dt);w.wgFade=1-w.wgT/WG_DEPARTURE;
+   if(w.wgT===WG_DEPARTURE){w.wgGone=true;w.wgFade=0;w.alive=false;w.death=0;}}
   return;
  }
- const d=Math.hypot(w.x-player.x,w.y-player.y),pp=wgPlayerProgress();
- const walk=4.65*clamp(Number.isFinite(mods.speed)?mods.speed:1,.5,2);
- if(w.wgStep<0){
-  if(d>7||!lineOfSight(w.x,w.y,player.x,player.y)){w.wgT=0;w.wgPlayerProgress=pp;return;}
-  w.wgT+=dt;if(w.wgT<.1)return;
-  w.wgStep=0;w.wgT=0;w.wgPlayerProgress=pp;
-  w.wgPlayerSpeed=Math.min(walk,Math.hypot(player.vx,player.vy));
- }
- // Ignore brief corner occlusion after the player has seen it. A latched
- // distance wait has distinct stop/resume thresholds, avoiding edge chatter.
- if(w.wgWaiting){if(d<7.5)w.wgWaiting=false;}
- else if(d>10)w.wgWaiting=true;
- const forward=clamp((pp-w.wgPlayerProgress)/dt,0,walk*1.15);w.wgPlayerProgress=pp;
- w.wgPlayerSpeed=mix(w.wgPlayerSpeed,forward,1-Math.exp(-dt*6));
- const lead=4.8,remaining=Math.max(0,WG_LENGTH-w.wgProgress);
- // Brake gently at the bend if the player has not entered yet, avoiding a
- // hard waypoint stop while preserving the same lead at the actual opening.
- const target=w.wgWaiting?0:Math.min(clamp(w.wgPlayerSpeed+(pp+lead-w.wgProgress)*2.3,0,walk*1.42),Math.sqrt(2*walk*3*remaining));
- // Continuous acceleration and braking; no velocity reset at path points.
- const acceleration=target>w.wgSpeed?walk*6:walk*3;
- w.wgSpeed+=clamp(target-w.wgSpeed,-acceleration*dt,acceleration*dt);
- if(w.wgSpeed<.015&&target<.015){w.wgSpeed=0;return;}
- const next=Math.min(WG_LENGTH,w.wgProgress+w.wgSpeed*dt),p=wgPoint(next);
- // Only the final disappearance enters a wall; ordinary travel uses the
- // same furniture-aware fit test as the player, including the rounded turn.
- if(!fits(p.x,p.y,w.r)){w.wgSpeed=Math.max(0,w.wgSpeed-walk*3*dt);return;}
- w.wgProgress=next;w.x=p.x;w.y=p.y;
- w.wgStep=next<WG_NORTH?0:1;
- if(next===WG_LENGTH){w.x=33.35;w.y=2.5;w.wgStep=WG_PATH.length;w.wgT=0;w.wgSpeed=0;}
+ const pp=wgPlayerProgress(w),walk=4.65*clamp(mods.speed||1,.5,2);
+ if(w.wgStep<0){if(d>7||!lineOfSight(w.x,w.y,player.x,player.y)){w.wgT=0;w.wgPlayerProgress=pp;return;}w.wgT+=dt;if(w.wgT<.1)return;w.wgStep=0;w.wgT=0;w.wgPlayerProgress=pp;w.wgPlayerSpeed=Math.min(walk,Math.hypot(player.vx,player.vy));}
+ if(w.wgWaiting){if(d<7.5)w.wgWaiting=false;}else if(d>10)w.wgWaiting=true;
+ const forward=clamp((pp-w.wgPlayerProgress)/dt,0,walk*1.15);w.wgPlayerProgress=pp;w.wgPlayerSpeed=mix(w.wgPlayerSpeed,forward,1-Math.exp(-dt*6));
+ const remaining=path.length-w.wgProgress,target=w.wgWaiting?0:Math.min(clamp(w.wgPlayerSpeed+(pp+4.8-w.wgProgress)*2.3,0,walk*1.42),Math.sqrt(2*walk*3*remaining));
+ w.wgSpeed+=clamp(target-w.wgSpeed,-walk*3*dt,walk*6*dt);
+ const next=remaining<.018?path.length:Math.min(path.length,w.wgProgress+w.wgSpeed*dt),p=wgPoint(next,w);
+ if(!fits(p.x,p.y,w.r)){w.wgSpeed=0;return;}w.wgProgress=next;w.x=p.x;w.y=p.y;
+ if(next===path.length){w.wgSpeed=0;w.wgT=0;}
 }
-hwTick=function(dt){
- if(!hwRunning())return;
- if(HW.arrival>0){HW.arrival-=dt;if(player.y<58)HW.arrival=0;}
- if(HB.state==='dormant'&&hbSafeEntry())hbStart();
- hbTick(dt);wgTick(dt);
-};
-
+hwTick=function(dt){if(!hwRunning())return;if(HW.arrival>0){HW.arrival-=dt;if(player.y<58)HW.arrival=0;}if(HB.state==='dormant'&&hbSafeEntry())hbStart();hbTick(dt);wgTick(dt);};

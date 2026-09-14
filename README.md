@@ -1,57 +1,89 @@
-# ASHFALL // NEON WARD — Beta 0.2.1
+# ASHFALL // NEON WARD — beta 0.2.9
 
-Mobile controls, landscape layout, clear interactions and stable navigation for the four-chapter horror FPS. This is a downloadable release; uploading it is a separate step from building it.
+The Lower Restrooms is a separate exploration chapter beneath the hospital: 84 authored rooms across six districts and six lower floor levels, with flooded galleries, vaulted reservoirs, reachable court balconies, stable spatial anomalies and a hidden sewer escape into the outdoor campaign.
+
+Beta 0.2.9 improves performance at unchanged visual quality. Transfer doorways render each necessary scene once, restrict adjoining-world shading to the opening, and compose without Canvas pixel readbacks. Water and mirror rendering reject work outside visible reflecting surfaces. Crossing restores prepared lighting, collision and navigation; ordinary navigation and checkpoint work reuse unchanged data. The full restroom world and the original gallery acoustic response are prepared during initial loading. This adds preparation before play in exchange for avoiding that first-use work at the staircase and hallway.
+
+See `PERFORMANCE.md` for implementation notes, exact image comparisons and optional local diagnostics. Real-browser and physical-phone frame rates remain device-dependent; the automated checks do not certify a fixed FPS.
 
 ## Play
 
-For a website, publish the contents of this folder with `index.html` at the root. Keep `assets/` beside it. GitHub Pages can serve it from the repository root; `.nojekyll` is included. A local web server also works: `python3 -m http.server 8000`, then open `http://localhost:8000`.
+Open the separately supplied `ashfall-beta-0.2.9.html` for the single-file version. This web/source package uses `index.html` and its adjacent `assets/` folder; keep them together when serving it as a static site. No backend or runtime dependency download is needed.
 
-The separately supplied `ashfall-beta-0.2.1.html` contains the same game and all media in one file for offline desktop use. On phones, use the hosted website: opening HTML from a phone's file preview is not equivalent to running it in a browser tab.
+The menu offers **Start the restroom chapter** for a new run beginning downstairs, and **Continue the descent** when a valid checkpoint is available. Chapter previews let you inspect individual districts, the two post-Heart routes, or the Drowned Hollow without replacing your saved campaign. The Hollow preview enables attacks but protect the player from damage; ordinary campaign appearances remain rare.
 
-### Touch
+For the campaign route, complete the optional Transfer in the first or second level, defeat the Heart, and follow the Warden left at the existing hallway junction. The far-left stair descends into the new chapter. Without the discovery, the Warden leads right toward the normal exit.
 
-- Left stick: move. Swipe open scene space to aim.
-- Hold **FIRE** to shoot; drag the same finger to aim while shooting. A separate aim finger also works.
-- **DASH**, **MELEE**, **RELOAD**, and **GUN**: immediate actions. GUN cycles available equipment, including a carried Seraphim.
-- The separate **USE** button appears for a reachable item, sign, ambulance, angel, or open chapter exit. Its label describes the current action.
-- **MAP** pauses the action. **PAUSE** opens the pause menu. Rotate to landscape for the widest view; rotating during play pauses and releases all held controls.
-- **Options → Aim sensitivity** adjusts touch and mouse aiming. Fullscreen is offered when the browser exposes the required API. Gameplay fits the visible browser area without fullscreen.
+Desktop: WASD movement; mouse looking and firing; E to use a door; M to open the exploration sketch; Escape to pause. The restroom camera can look and fire almost straight up or down; the reticle and all three weapons share the same sight line. Existing weapon, reload, melee and dash controls remain available.
 
-Keyboard: WASD move · mouse aim/fire · 1–4 or wheel equipment · R reload · Q/right click melee · Space/Shift dash · E use · M map · Tab peek · U mute · Esc pause.
+Mobile: use landscape for the widest view. Left stick moves; drag on the right to look; FIRE can also be dragged to aim while held. OPEN/CLOSE appears only when a usable door is nearby. MAP pauses exploration. Safe-area handling, independent multitouch ownership and gameplay gesture suppression are retained.
 
-Start on Standard. Headphones recommended. Reduced flashes and motion are available in Options. Checkpoints last for the current browser session; closing or reloading starts a fresh run.
+The chapter adapts its internal render resolution to sustained rendering load, after a warmup, preserving the current scale at the entrance. It preserves viewport proportions, camera pitch and the resolution limit chosen in Options. Cooldown now follows elapsed time so it does not stretch when frames slow down. The original quality thresholds remain. Leaving restores the normal rendering scale; the HUD and touch targets retain their layout.
 
-## Changes
+## The chapter
 
-- Safe-area-aware edge controls, compact HUD and portrait/short-landscape layouts. USE appears independently of the combat controls so they do not move during an interaction.
-- Canvas, HUD and menus follow the visible viewport as browser chrome changes. Mobile weapons occupy less of the view.
-- Independent touch ownership, drag-to-aim firing, press feedback, cancellation cleanup, and gameplay-scoped selection/context-menu/gesture guards. Menus remain scrollable and feedback text remains selectable.
-- One final HUD update path removes conflicting chapter 4 compass/objective updates. Direction thresholds have a small dead band to prevent jitter.
-- Clear contextual interaction prompts and matching touch actions for quest items, ambulance, Seraphim and exits.
-- Chapters 1 and 2 have readable exit plaques and steady light/door trim once the exit unlocks.
+- Twelve public-wing rooms, eighteen wash galleries, sixteen cubicle-warren rooms, sixteen reservoir/perimeter rooms, twelve court/enclosed-gallery rooms, and ten undercroft/dry-wing rooms. Stalls, connectors and additional court decks are not counted as separate rooms.
+- Four major flooded halls and three multi-floor courts, including real stairs, balconies and distant accessible rooms.
+- Six fixed spatial connections with normal local movement and reversible traversal. Ordinary backtracking works; the Transfer's forward-only rule stays in its own hallway.
+- Water footsteps tied to resolved movement and local water depth. Large spaces echo; selected rooms have local water ambience, and others have ambient silence.
+- Indoor water with submerged floor visibility, reflected architecture and moving projectile light; district materials, local illumination, world-plane signs and selected mirrors.
+- Doors, deep-side latches, persistent shortcuts, a floor/district exploration sketch and optional orientation hints.
+- One extremely rare melee presence: the towering Drowned Hollow in a dark reservoir. A swollen, waterlogged body surrounds its hollow face; its belly is closed and its hands are empty. Angry breathing and water movement warn of its slower, heavy charge. The first hit or attack reveals it permanently. The Warden himself disappears before this chapter and remains absent within it.
+- Real recorded water footsteps replace the synthetic water step layer, with quieter boot weight, depth variation and local acoustics.
+- The optional Transfer hallway is flooded, with ripples and reflections. Both doorways show their actual adjoining space before crossing, preserving the camera, weapon and held inputs. Its existing movement rules remain intact; optical compression keeps the stationary Warden in view, and shots toward him provoke wall screams without harming him.
 
-All 29 media files, audio cue data, selected creature voices and existing campaign progression are preserved. See [PLAYTEST.md](PLAYTEST.md) for focused checks and validation limits.
+The first stair is at the original post-Heart left dead end. The new rooms do not enlarge or replace the Heart map. Crossing the bottom stair doorway closes the route back to the Heart. Deep in the undercroft, a service drain leads into a long sewer ascent and emerges between the hospital and lake. The exterior culvert is present on normal outdoor runs, but barred from that side until earned through the restrooms. The sewer joins the existing outdoor quest and Cerberus progression.
 
-## Build and check
+## Checkpoints
 
-No npm install or application server is required for deployment. `src/modules.json` defines the ordered runtime modules, which are compiled into one script to preserve shared scope.
+Checkpoints preserve the current chapter position, floor, inventory, health, explored rooms, door/shortcut state, spatial discoveries, consumed Transfer and resolved Heart. They are written at stable transitions, periodically during exploration, and when leaving the session. A previous valid generation provides a fallback if the latest checkpoint is corrupted.
+
+Progress is stored by the browser in the current game location. Continue becomes available when that browser exposes a valid saved checkpoint. The menu reports a storage failure if saving is unavailable. Starting a new run replaces the previous run; isolated chapter previews do not. The Hollow encounter choice, reveal state and spent opportunity persist without reload rerolls. Older checkpoints are upgraded without restoring discontinued encounters or changing carried resources. Death retries downstairs. Sewer arrival has a durable checkpoint; exterior combat subsequently uses the existing in-session Journey checkpoints. Reloading the page resumes the sewer arrival anchor with its matching inventory and world state.
+
+## Build and source
+
+`src/modules.json` defines the ordered shared-scope JavaScript modules. `tools/build.py` combines them into one content-hashed script and produces the entry page and stylesheet:
 
 ```sh
 python3 tools/build.py
-python3 tests/check_distribution.py
-node tests/check_asset_loader.cjs
-node tests/check_hud_interactions.cjs
-node tests/check_mobile_input.cjs
+python3 tools/export_standalone.py /absolute/path/ashfall-beta-0.2.9.html
 ```
 
-To verify inherited media and cue data, pass the original beta 0.2.0 HTML to `check_distribution.py --standalone /path/to/ashfall-beta-0.2.0.html`.
+Runtime code is intentionally bundled as a single script because the original modules share lexical state and initialization order. The restroom world, renderer, audio, controller and checkpoint modules are separate source files within that build.
 
-To export one self-contained HTML after building:
+All 29 inherited media files retain their exact original bytes and content-hashed filenames. Added architecture, creature geometry and room responses are authored in code. The Hollow uses its approved face and wet-skin textures embedded in the bundle; their provenance is recorded in `CREATURE_ART_CREDITS.md`. New recorded water Foley is embedded in the source, with source links and licensing in `WATER_AUDIO_CREDITS.md`. See `CREDITS.md` for inherited credits.
+
+## Verification
 
 ```sh
-python3 tools/export_standalone.py /path/to/ashfall-beta-0.2.1.html
+node tests/check_mobile_input.cjs
+node tests/check_hud_interactions.cjs
+node tests/check_transfer.cjs
+node tests/check_transfer_haunting.cjs
+node tests/check_transfer_portals.cjs
+node tests/check_transfer_performance.cjs
+node tests/check_performance_parity.cjs
+node tests/check_performance_preparation.cjs
+node tests/check_performance_metrics.cjs
+node tests/check_performance_recurring.cjs
+node tests/check_restrooms.cjs
+node tests/check_restroom_controls.cjs
+node tests/check_restroom_transition.cjs
+node tests/check_restroom_ballistics.cjs
+node tests/check_restroom_rendering.cjs
+node tests/check_restroom_render_masks.cjs
+node tests/check_restroom_performance.cjs
+node tests/check_restroom_encounters.cjs
+node tests/check_restroom_creatures.cjs
+node tests/check_restroom_sewer.cjs
+node tests/check_restroom_audio.cjs
+node tests/check_restroom_threat_audio.cjs
+node tests/check_restroom_threat_world.cjs
+node tests/check_restroom_save.cjs
+python3 tests/check_distribution.py
+node tests/check_asset_loader.cjs
 ```
 
-Commit `src/`, generated `index.html`, and `assets/code/` together. Media filenames contain content hashes. Keep their exact filenames and bytes; the original standalone beta 0.2.0 checksum is `c38b4c928977a12710e2033e5bfac09d64041f935153b9b8895a9171e8a2d52b`.
+The distribution check also accepts `--standalone /absolute/path/ashfall-beta-0.2.0.html` to verify the original media and cue data against the recovered baseline. `PLAYTEST.md` records the validation performed for this release and the remaining device/experience checks. Native simulation, Canvas renders and audio DSP checks are distinct from a real browser or phone playthrough.
 
-Full audio attributions remain in Options and credits; see [CREDITS.md](CREDITS.md).
+`LOWER_RESTROOMS_PLAN.md` contains the approved scope and design rationale. This package contains a review build; it does not publish or alter an existing hosted site.

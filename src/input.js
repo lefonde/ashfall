@@ -8,16 +8,20 @@ function touchCapture(el,id){try{el.setPointerCapture(id);}catch{}}
 function touchDevice(e){
  if(e.pointerType==='touch'&&!coarse){coarse=true;document.body.classList.add('touch-device');queueViewportResize();}
 }
+const RS_VIEW_PITCH_LIMIT=88*Math.PI/180;
+function rsAimProjection(){return Number.isFinite(projection)&&projection>0?projection:W/(2*Math.tan(.7));}
+function rsClampViewPitch(value=aimPitch){const p=rsAimProjection();return Math.tan(clamp(Math.atan((Number.isFinite(value)?value:0)/p),-RS_VIEW_PITCH_LIMIT,RS_VIEW_PITCH_LIMIT))*p;}
+function rsLookVertical(radians){const p=rsAimProjection(),current=Math.atan(aimPitch/p);aimPitch=Math.tan(clamp(current+radians,-RS_VIEW_PITCH_LIMIT,RS_VIEW_PITCH_LIMIT))*p;}
 function touchAim(dx,dy){
  // Same sensitivity slider on mouse and touch; normalize across screen sizes.
  const scale=clamp(844/(gameViewport.width||innerWidth||844),.65,1.4);
  player.a+=dx*settings.sensitivity*2.65*scale;lookDelta+=dx;
- if(!settings.reduce)aimPitch=clamp(aimPitch-dy*.12,-H*.08,H*.08);
+ if(typeof rsRunning==='function'&&rsRunning())rsLookVertical(-dy*settings.sensitivity*2.65*scale);else if(!settings.reduce)aimPitch=clamp(aimPitch-dy*.12,-H*.08,H*.08);
 }
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyF')s4tReleaseTrigger();if(e.code==='Tab')mapHeld=false;});
 let hadLock=false;
 document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===canvas;if(hadLock&&!locked&&mode==='playing')pauseGame();hadLock=locked;});
-addEventListener('mousemove',e=>{if(mode!=='playing'||coarse||s4dLocked())return;if(document.pointerLockElement===canvas||mouseFire){player.a+=e.movementX*settings.sensitivity;lookDelta+=e.movementX;if(!settings.reduce)aimPitch=clamp(aimPitch-e.movementY*.09,-H*.1,H*.1);}});
+addEventListener('mousemove',e=>{if(mode!=='playing'||coarse||s4dLocked())return;if(document.pointerLockElement===canvas||mouseFire){player.a+=e.movementX*settings.sensitivity;lookDelta+=e.movementX;if(typeof rsRunning==='function'&&rsRunning())rsLookVertical(-e.movementY*settings.sensitivity);else if(!settings.reduce)aimPitch=clamp(aimPitch-e.movementY*.09,-H*.1,H*.1);}});
 canvas.addEventListener('mousedown',e=>{if(mode!=='playing'||coarse||s4dLocked())return;if(e.button===0){mouseFire=true;shoot();if(document.pointerLockElement!==canvas)lockPointer();}if(e.button===2){e.preventDefault();melee();}});
 addEventListener('mouseup',e=>{if(e.button===0&&touchFireId===null){mouseFire=false;s4tReleaseTrigger();}});
 addEventListener('wheel',e=>{if(mode!=='playing')return;e.preventDefault();changeWeapon(weapon+(e.deltaY>0?1:-1));},{passive:false});
@@ -78,7 +82,7 @@ touchAction('touchDash',dash);
 touchAction('touchGun',()=>changeWeapon(weapon+1));
 touchAction('touchReload',reload);
 touchAction('touchMelee',melee);
-touchAction('touchUse',()=>{if(s4Interact()||fvInteract()||chInteract())return;if(hudExitNear())completeWard();});
+touchAction('touchUse',()=>{if((typeof rsInteract==='function'&&rsInteract())||s4Interact()||fvInteract()||chInteract())return;if(hudExitNear())completeWard();});
 touchAction('touchMap',()=>wfOpenMap());
 touchAction('touchPause',pauseGame,true);
 function playingSurface(target){

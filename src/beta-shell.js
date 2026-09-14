@@ -1,5 +1,4 @@
-// Distribution shell only. All approved campaign/renderer/audio units precede
-// this file unchanged. No telemetry, uploads, remote assets or new combat rules.
+// Distribution shell. Campaign/renderer/audio units precede this file. No telemetry, uploads, remote assets or new combat rules.
 (function betaShell(){
  document.body.classList.add('beta');
  document.title='ASHFALL // NEON WARD — Beta '+BUILD.version;
@@ -21,7 +20,7 @@
    'Window: '+innerWidth+' × '+innerHeight,
    'Visible viewport: '+gameViewport.width+' × '+gameViewport.height,
    'Touch controls: '+(coarse?'yes':'no'),
-   'Chapter: '+(stage+1)+' / '+(s4Running()?'No Way Out':wardNames[stage]||'Menu'),
+   'Chapter: '+(typeof rsRunning==='function'&&rsRunning()?'Lower Restrooms / '+RS.active.room+' / height '+RS.active.z.toFixed(2):(stage+1)+' / '+(s4Running()?'No Way Out':wardNames[stage]||'Menu')),
    'Objective: '+$('goal').textContent,
    'Position: '+player.x.toFixed(2)+', '+player.y.toFixed(2),
    'Run time: '+formatTime(gameTime),

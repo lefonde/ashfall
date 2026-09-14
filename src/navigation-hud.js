@@ -13,7 +13,7 @@ wfHud=function(){
  // not parse markup, allocate graphics or trigger a new route calculation.
  const compass=$('compass');
  if(compass.dataset.direction!==direction)compass.dataset.direction=direction;
- $('wfNavHint').textContent=hint;
+ hudWrite('wfNavHint','textContent',hint);
  return result;
 };
 

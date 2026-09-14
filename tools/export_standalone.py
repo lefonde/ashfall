@@ -16,7 +16,7 @@ def export(destination):
     css = (ROOT / style_path).read_text()
     for item in json.loads((ROOT / 'src/media.json').read_text()):
         path = item['path']
-        mime = 'audio/mpeg' if path.endswith('.mp3') else 'image/png'
+        mime = 'audio/mpeg' if path.endswith('.mp3') else 'image/webp' if path.endswith('.webp') else 'image/png'
         uri = 'data:' + mime + ';base64,' + base64.b64encode((ROOT / path).read_bytes()).decode()
         quoted = json.dumps(path)
         assert quoted in script, path

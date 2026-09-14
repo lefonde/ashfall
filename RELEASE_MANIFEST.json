@@ -1,0 +1,11 @@
+{
+  "version": "0.2.9",
+  "kind": "static beta release",
+  "standalone_filename": "ashfall-beta-0.2.9.html",
+  "standalone_sha256": "ccbea9f4ad1c46d1ebd6bf047900658fb5b2be995d301d4ea4281375ae6eab67",
+  "media_files": 29,
+  "authoritative_source": "src/modules.json",
+  "performance_evidence": "PERFORMANCE.md",
+  "release_notes": "PLAYTEST.md",
+  "validation": "Native source/Canvas/audio processing; no physical-device FPS measurement"
+}

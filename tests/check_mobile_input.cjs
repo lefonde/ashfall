@@ -97,7 +97,7 @@ function harness({ coarse = true } = {}) {
     addEventListener: win.addEventListener.bind(win),
     requestAnimationFrame: callback => { const id = nextFrame++; queuedFrames.set(id, callback); return id; },
     cancelAnimationFrame: id => queuedFrames.delete(id),
-    s4dLocked: () => flags.locked, s4Running: () => flags.s4,
+    s4dLocked: () => flags.locked, tfRunning:()=>false, s4Running: () => flags.s4,
     fvRunning: () => flags.fv, chRunning: () => flags.ch, hwRunning: () => false,
     s4tReleaseTrigger: () => calls.triggerRelease++,
     shoot: () => calls.shoot++, dash: () => calls.dash++, changeWeapon: () => calls.gun++,

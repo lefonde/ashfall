@@ -147,6 +147,7 @@ function wfDirection(target,bearing){
  WF.navTarget=target?.id||'';WF.navArrow=symbol;return symbol;
 }
 function wfHud(){
+ if(typeof rsRunning==='function'&&rsRunning())return;
  wfSync();const target=wfTarget(),bearing=mode==='playing'?wfBearing(target):null;
  const arrow=$('compassArrow'),label=$('compassText');
  arrow.style.transform='none';arrow.style.visibility='visible';

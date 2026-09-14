@@ -645,3 +645,22 @@ body.touch-device #mobileRotateHint { display:none; }
 @media(prefers-reduced-motion:reduce) {
  body.touch-device #touch button { transition:none; }
 }
+
+/* The full downstairs chapter keeps interaction small and the centre clear. */
+body.restroom-scene #interactPrompt { width:auto; max-width:45vw; padding:5px 9px; background:#0b181aaa; }
+body.restroom-scene #interactHint { display:none; }
+body.restroom-scene #interactAction { font-size:11px; letter-spacing:.05em; }
+body.restroom-scene #wfDestinations { display:flex; flex-wrap:wrap; gap:5px; }
+body.restroom-scene #wfDestinations button { padding:7px 10px; font-size:10px; }
+body.restroom-scene #wfDestinations button[aria-pressed="true"] { border-color:#b9c7a9; color:#e6eadb; background:#294344; }
+body.restroom-scene #wfMapObjective { font-size:12px; }
+#restroomContinue { margin-bottom:10px; }
+#restroomDistrictPreview { max-width:100%; margin:8px 0; }
+#restroomSaveNote { max-width:480px; line-height:1.5; margin:5px 0 12px; }
+@media (max-height:500px) {
+ body.restroom-scene #mapPanel { padding:6px; }
+ body.restroom-scene .wfMapSheet { padding:9px 12px; }
+ body.restroom-scene #wfMapTitle { font-size:16px; }
+ body.restroom-scene #wfDestinations button { padding:5px 8px; }
+ body.restroom-scene #wfMapNote { font-size:10px; }
+}

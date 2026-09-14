@@ -43,7 +43,7 @@ function load(file,names){
   assert(script,name+' closes');script.runInContext(c);
  }
 }
-load('ui.js',['hudUpdate','hudExitNear','hudExteriorInteraction','hudInteractionHud']);
+load('ui.js',['hudWrite','hudStyle','hudUpdate','hudExitNear','hudExteriorInteraction','hudInteractionHud']);
 load('simulation.js',['update']);
 load('exterior.js',['s4Running','s4Hud']);
 load('exterior-sequence.js',['s4dLocked','s4dPhase','s4dTick','s4dHud','s4dWreckNear']);

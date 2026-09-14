@@ -12,7 +12,8 @@ def build():
     constants = json.loads((SRC / 'constants.json').read_text())
     media = json.loads((SRC / 'media.json').read_text())
     modules = json.loads((SRC / 'modules.json').read_text())
-    assert len(modules) == len(set(modules)) == 63
+    assert len(modules) == len(set(modules)) and len(modules) >= 68
+    assert all(name in modules for name in ['restroom-world.js', 'restroom-renderer.js', 'restroom-audio.js', 'restrooms.js', 'restroom-save.js'])
     assert modules[0] == 'state.js' and 'navigation-review.js' not in modules
     for item in media:
         data = (ROOT / item['path']).read_bytes()
